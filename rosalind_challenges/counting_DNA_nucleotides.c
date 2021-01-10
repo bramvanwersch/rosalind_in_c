@@ -3,18 +3,38 @@
 #include <errno.h>
 #include "general_functions.h"
 
-int main(int argc, char *argv[])
-{
-	char ch;
-	FILE *input_file_pointer;
-	int dna_counts[] = { 0, 0, 0, 0 };
+void count_nucleotides();
 
+FILE *input_file_pointer;
+int dna_counts[] = { 0, 0, 0, 0 };
+
+
+int main(int argc, char *argv[]){
+
+	// make sure that the input file is provided
 	if (argc < 2) {
-		printf("Expected at least 2 files got %d", argc);
+		printf("Expected at least 2 files got %d/n", argc);
 		exit(1);
 	}
+
+	// read the input file into memory
 	input_file_pointer = open_file(argv[1], "r");
-	while ((ch = fgetc(input_file_pointer)) != EOF)
+	count_nucleotides();
+	fclose(input_file_pointer);
+
+	input_file_pointer = open_file("output.txt", "w");
+	// print result into file
+	for (int i = 0; i < 4; i++) {
+		printf("%d%s", dna_counts[i], (i < 3) ? " " : "\n");
+		fprintf(input_file_pointer, "%d%s", dna_counts[i], (i < 3) ? " " : "");
+	}
+	return 0;
+}
+
+void count_nucleotides() {
+	char ch;
+
+	while ((ch = fgetc(input_file_pointer)) != EOF) {
 		switch (ch) {
 		case 'A':
 			dna_counts[0]++;
@@ -32,14 +52,5 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Invalid character %d\n", ch);
 			exit(1);
 		}
-	fclose(input_file_pointer);
-
-	input_file_pointer = open_file("output.txt", "w");
-	// print result into file
-	for (int i = 0; i < 4; i++) {
-		printf("%d%s", dna_counts[i], (i < 3) ? " " : "\n");
-		fprintf(input_file_pointer, "%d%s", dna_counts[i], (i < 3) ? " " : "");
 	}
-	return 0;
 }
-
