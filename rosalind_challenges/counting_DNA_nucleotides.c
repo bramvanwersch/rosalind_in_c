@@ -3,10 +3,10 @@
 #include <errno.h>
 #include "general_functions.h"
 
-void count_nucleotides();
-
 FILE *input_file_pointer;
 int dna_counts[] = { 0, 0, 0, 0 };
+
+void count_nucleotides();
 
 
 int main_counting_DNA_nucleotides(char *argv[]){
