@@ -9,16 +9,9 @@ FILE *input_file_pointer;
 int dna_counts[] = { 0, 0, 0, 0 };
 
 
-int main(int argc, char *argv[]){
-
-	// make sure that the input file is provided
-	if (argc < 2) {
-		printf("Expected at least 2 files got %d/n", argc);
-		exit(1);
-	}
-
+int main_counting_DNA_nucleotides(char *argv[]){
 	// read the input file into memory
-	input_file_pointer = open_file(argv[1], "r");
+	input_file_pointer = open_file(argv[2], "r");
 	count_nucleotides();
 	fclose(input_file_pointer);
 

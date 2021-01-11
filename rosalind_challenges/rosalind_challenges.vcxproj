@@ -127,6 +127,14 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="main.c">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="transcribing_DNA_into_RNA.c">
+      <SubType>
+      </SubType>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_functions.h" />

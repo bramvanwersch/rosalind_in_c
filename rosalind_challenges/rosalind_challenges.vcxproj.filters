@@ -21,6 +21,12 @@
     <ClCompile Include="general_functions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="transcribing_DNA_into_RNA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_functions.h">
