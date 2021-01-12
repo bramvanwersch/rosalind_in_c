@@ -3,7 +3,7 @@
 #include <errno.h>
 #include "general_functions.h"
 
-FILE *input_file_pointer;
+FILE *file_pointer;
 int dna_counts[] = { 0, 0, 0, 0 };
 
 void count_nucleotides();
@@ -11,23 +11,24 @@ void count_nucleotides();
 
 int main_counting_DNA_nucleotides(char *argv[]){
 	// read the input file into memory
-	input_file_pointer = open_file(argv[2], "r");
+	file_pointer = open_file(argv[2], "r");
 	count_nucleotides();
-	fclose(input_file_pointer);
+	fclose(file_pointer);
 
-	input_file_pointer = open_file("output.txt", "w");
+	file_pointer = open_file("output.txt", "w");
 	// print result into file
 	for (int i = 0; i < 4; i++) {
 		printf("%d%s", dna_counts[i], (i < 3) ? " " : "\n");
-		fprintf(input_file_pointer, "%d%s", dna_counts[i], (i < 3) ? " " : "");
+		fprintf(file_pointer, "%d%s", dna_counts[i], (i < 3) ? " " : "");
 	}
+	fclose(file_pointer);
 	return 0;
 }
 
 void count_nucleotides() {
 	char ch;
 
-	while ((ch = fgetc(input_file_pointer)) != EOF) {
+	while ((ch = fgetc(file_pointer)) != EOF) {
 		switch (ch) {
 		case 'A':
 			dna_counts[0]++;

@@ -119,6 +119,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="complementing_a_strand_of_DNA.c">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="counting_DNA_nucleotides.c">
       <SubType>
       </SubType>

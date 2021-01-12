@@ -3,6 +3,8 @@
 
 int main_counting_DNA_nucleotides(char *argv[]);
 int main_transcribing_DNA_into_RNA(char *argv[]);
+int main_complementing_a_strand_of_DNA(char *argv[]);
+
 
 int main(int argc, char *argv[]) {
 	// expected argv argument argv[1] = name of challenge, argv[2:] = other arguments
@@ -19,6 +21,9 @@ int main(int argc, char *argv[]) {
 	}
 	else if (strcmp(argv[1], "transcribing_DNA_into_RNA") == 0) {
 		int result = main_transcribing_DNA_into_RNA(argv);
+	}
+	else if (strcmp(argv[1], "complementing_a_strand_of_DNA") == 0) {
+		int result = main_complementing_a_strand_of_DNA(argv);
 	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);

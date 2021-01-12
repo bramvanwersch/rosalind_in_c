@@ -18,3 +18,20 @@ FILE *open_file(char *file_name, const char *mode) {
 	}
 	return file_pointer;
 }
+
+char* read_file(FILE *file_pointer) {
+	int long nr_bytes;
+	char *buffer = 0;
+
+	fseek(file_pointer, 0, SEEK_END);
+	nr_bytes = ftell(file_pointer);
+	fseek(file_pointer, 0, SEEK_SET);
+
+	buffer = malloc(nr_bytes);
+	if (buffer) {
+		fread(buffer, 1, nr_bytes, file_pointer);
+	}
+	// make sure to null terminate the string
+	buffer[nr_bytes] = '\0';
+	return buffer;
+}

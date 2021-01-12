@@ -12,6 +12,8 @@ int main_transcribing_DNA_into_RNA(char *argv[]) {
 	input_file_pointer = open_file(argv[2], "r");
 	output_file_pointer = open_file("output.txt", "w");
 	make_RNA();
+	fclose(input_file_pointer);
+	fclose(output_file_pointer);
 
 	return 0;
 }
