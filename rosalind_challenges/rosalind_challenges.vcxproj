@@ -119,14 +119,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="complementing_a_strand_of_DNA.c">
-      <SubType>
-      </SubType>
-    </ClCompile>
-    <ClCompile Include="counting_DNA_nucleotides.c">
-      <SubType>
-      </SubType>
-    </ClCompile>
     <ClCompile Include="general_functions.c">
       <SubType>
       </SubType>
@@ -135,13 +127,14 @@
       <SubType>
       </SubType>
     </ClCompile>
-    <ClCompile Include="transcribing_DNA_into_RNA.c">
+    <ClCompile Include="string_algorithms.c">
       <SubType>
       </SubType>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_functions.h" />
+    <ClInclude Include="string_algorithms.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

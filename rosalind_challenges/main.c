@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-
-int main_counting_DNA_nucleotides(char *argv[]);
-int main_transcribing_DNA_into_RNA(char *argv[]);
-int main_complementing_a_strand_of_DNA(char *argv[]);
+#include "string_algorithms.h"
 
 
 int main(int argc, char *argv[]) {
 	// expected argv argument argv[1] = name of challenge, argv[2:] = other arguments
+	int result;
 
 	// make sure that the input file is provided
 	if (argc < 3) {
@@ -17,18 +15,18 @@ int main(int argc, char *argv[]) {
 
 	// ideal case this would be some sort of hashtable lookup
 	if (strcmp(argv[1], "counting_DNA_nucleotides") == 0) {
-		int result = main_counting_DNA_nucleotides(argv);
+		result = counting_DNA_nucleotides(argv);
 	}
 	else if (strcmp(argv[1], "transcribing_DNA_into_RNA") == 0) {
-		int result = main_transcribing_DNA_into_RNA(argv);
+		result = transcribing_DNA_into_RNA(argv);
 	}
 	else if (strcmp(argv[1], "complementing_a_strand_of_DNA") == 0) {
-		int result = main_complementing_a_strand_of_DNA(argv);
+		result = complementing_a_strand_of_DNA(argv);
 	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);
 		return 2;
 	}
-	printf("Done running the challenge '%s'.\n", argv[1]);
+	printf("Done running the challenge '%s' with exit code %d.\n", argv[1], result);
 	return 0;
 }

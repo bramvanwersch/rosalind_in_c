@@ -15,24 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="counting_DNA_nucleotides.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="general_functions.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="transcribing_DNA_into_RNA.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="complementing_a_strand_of_DNA.c">
+    <ClCompile Include="string_algorithms.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="string_algorithms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
