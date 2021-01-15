@@ -14,8 +14,9 @@ LinkedList* add_linked_entry(LinkedList *entry, char* line) {
 	LinkedList* new_entry;
 
 	new_entry = allocate_linked_entry();
-	new_entry->value = line;
+	entry->value = line;
 	new_entry->next = NULL;
+	new_entry->value = NULL;
 	entry->next = new_entry;
 	return new_entry;
 }

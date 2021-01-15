@@ -1,6 +1,4 @@
 #include <stdio.h>
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -128,7 +126,7 @@ int computing_GC_content(char *argv[]) {
 	char *best_name_pointer = best_name;
 	LinkedList *lines = read_lines(input_file_pointer);
 
-	while ((lines = lines->next) != NULL) {
+	while (lines->next != NULL) {
 		if (lines->value[0] == '>') {
 			float gc_content = (counts[0] / (float)counts[1]);
 			if (gc_content > best_gc) {
@@ -142,7 +140,9 @@ int computing_GC_content(char *argv[]) {
 		else {
 			count_GC_content(counts, lines->value);
 		}
+		lines = lines->next;
 	}
+
 	float gc_content = (counts[0] / (float)counts[1]);
 	if (gc_content > best_gc) {
 		best_gc = gc_content;

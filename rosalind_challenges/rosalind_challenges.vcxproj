@@ -119,6 +119,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="allignment_algorithms.c">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="general_functions.c">
       <SubType>
       </SubType>
@@ -133,6 +137,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="allignment_algorithms.h" />
     <ClInclude Include="general_functions.h" />
     <ClInclude Include="string_algorithms.h" />
   </ItemGroup>

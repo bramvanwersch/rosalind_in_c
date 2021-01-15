@@ -24,12 +24,18 @@
     <ClCompile Include="string_algorithms.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="allignment_algorithms.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="string_algorithms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="allignment_algorithms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

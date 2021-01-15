@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "string_algorithms.h"
+#include "allignment_algorithms.h"
 
 
 int main(int argc, char *argv[]) {
@@ -25,6 +26,9 @@ int main(int argc, char *argv[]) {
 	}
 	else if (strcmp(argv[1], "computing_GC_content") == 0) {
 		result = computing_GC_content(argv);
+	}
+	else if (strcmp(argv[1], "counting_point_mutations") == 0) {
+		result = counting_point_mutations(argv);
 	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);
