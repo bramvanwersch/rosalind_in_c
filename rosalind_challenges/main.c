@@ -23,6 +23,9 @@ int main(int argc, char *argv[]) {
 	else if (strcmp(argv[1], "complementing_a_strand_of_DNA") == 0) {
 		result = complementing_a_strand_of_DNA(argv);
 	}
+	else if (strcmp(argv[1], "computing_GC_content") == 0) {
+		result = computing_GC_content(argv);
+	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);
 		return 2;

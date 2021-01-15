@@ -117,3 +117,68 @@ void complement_DNA() {
 		}
 	}
 }
+
+int computing_GC_content(char *argv[]) {
+	input_file_pointer = open_file(argv[2], "r");
+	output_file_pointer = open_file("output.txt", "w");
+	char name[100]; //sufficiently large buffer for any possible name
+	int counts[2] = {0, 0}; //gc count, total count
+	float best_gc = 0;
+	char best_name[100];
+	char *best_name_pointer = best_name;
+	LinkedList *lines = read_lines(input_file_pointer);
+
+	while ((lines = lines->next) != NULL) {
+		if (lines->value[0] == '>') {
+			float gc_content = (counts[0] / (float)counts[1]);
+			if (gc_content > best_gc) {
+				best_gc = gc_content;
+				strcpy_s(best_name, 100, name);
+			}
+			strcpy_s(name, 100, lines->value);
+			counts[0] = 0;
+			counts[1] = 0;
+		}
+		else {
+			count_GC_content(counts, lines->value);
+		}
+	}
+	float gc_content = (counts[0] / (float)counts[1]);
+	if (gc_content > best_gc) {
+		best_gc = gc_content;
+		strcpy_s(best_name, 100, name);
+	}
+
+	best_name_pointer++;
+	printf("%s\n%f\n", best_name_pointer, best_gc * 100);
+	fprintf(output_file_pointer, "%s\n%f", best_name_pointer, best_gc * 100);
+
+	fclose(input_file_pointer);
+	fclose(output_file_pointer);
+	return 0;
+}
+
+void count_GC_content(int *counts, char *line) {
+	char ch;
+	while (ch = *line++) {
+		switch (ch){
+		case 'C':
+			counts[0]++;
+			counts[1]++;
+			break;
+		case 'G':
+			counts[0]++;
+			counts[1]++;
+			break;
+		case 'A':
+			counts[1]++;
+			break;
+		case 'T':
+			counts[1]++;
+			break;
+		default:
+			fprintf(stderr, "Invalid character %d\n", ch);
+			exit(1);
+		}
+	}
+}
