@@ -13,8 +13,9 @@ int counting_point_mutations(char *argv[]){
 	LinkedList *lines = read_lines(input_file_pointer);
 	char *line1 = lines->value;
 	char *line2 = lines->next->value;
-	printf("%s, %s\n", line1, line2);
-	printf("Total differences %d\n", count_line_differences(line1, line2));
+	int differences = count_line_differences(line1, line2);
+	printf("Total differences %d\n", differences);
+	fprintf(output_file_pointer, "%d", differences);
 	fclose(input_file_pointer);
 	fclose(output_file_pointer);
 	return 0;
