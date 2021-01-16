@@ -30,6 +30,9 @@ int main(int argc, char *argv[]) {
 	else if (strcmp(argv[1], "counting_point_mutations") == 0) {
 		result = counting_point_mutations(argv);
 	}
+	else if (strcmp(argv[1], "translating_RNA_into_protein") == 0) {
+		result = translating_RNA_into_protein(argv);
+	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);
 		return 2;

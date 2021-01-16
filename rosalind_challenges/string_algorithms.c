@@ -182,3 +182,13 @@ void count_GC_content(int *counts, char *line) {
 		}
 	}
 }
+
+int translating_RNA_into_protein(char *argv[]) {
+	// read the input file into memory
+	input_file_pointer = open_file(argv[2], "r");
+	output_file_pointer = open_file("output.txt", "w");
+	main_hash();
+	fclose(input_file_pointer);
+	fclose(output_file_pointer);
+	return 0;
+}
