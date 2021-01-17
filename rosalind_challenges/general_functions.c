@@ -6,21 +6,6 @@
 
 #define ERROR_BUFFER_SIZE 100
 
-LinkedList* allocate_linked_entry(void) {
-	return (LinkedList *)malloc(sizeof(LinkedList));
-}
-
-LinkedList* add_linked_entry(LinkedList *entry, char* line) {
-	LinkedList* new_entry;
-
-	new_entry = allocate_linked_entry();
-	entry->value = line;
-	new_entry->next = NULL;
-	new_entry->value = NULL;
-	entry->next = new_entry;
-	return new_entry;
-}
-
 FILE* open_file(char *file_name, const char *mode) {
 	// open a file with error checking
 	errno_t error;
@@ -102,36 +87,30 @@ LinkedList* read_lines(FILE *file_pointer) {
 	return root;
 }
 
+LinkedList* allocate_linked_entry(void) {
+	return (LinkedList *)malloc(sizeof(LinkedList));
+}
+
+LinkedList* add_linked_entry(LinkedList *entry, char* line) {
+	LinkedList* new_entry;
+
+	new_entry = allocate_linked_entry();
+	entry->value = line;
+	new_entry->next = NULL;
+	new_entry->value = NULL;
+	entry->next = new_entry;
+	return new_entry;
+}
+
 unsigned hash(char *key, int size);
-Entry *get(HashTable *table, char *key);
+char *get(HashTable *table, char *key);
+Entry *in(HashTable *self, char *key);
 Entry *add(HashTable *table, char *key, char *value);
 void increase_table_size(HashTable *table);
 int delete(HashTable *self, char *key);
 void free_entry(Entry *e);
 void print(HashTable *self);
 void printEntry(Entry *e, int index);
-
-
-/* The main tester */
-int main_hash() {
-	HashTable *ht = new_hash_table(3);
-
-	ht->add(ht, "hey", "ho");
-	ht->add(ht, "ha", "halo");
-
-	ht->print(ht);
-
-	ht->add(ht, "hi", "hi");
-	ht->add(ht, "hi", "new value");
-
-	ht->print(ht);
-
-	ht->delete(ht, "hi");
-	ht->delete(ht, "non existent");
-
-	ht->print(ht);
-	return 0;
-}
 
 /*Create a new hash table*/
 HashTable *new_hash_table(int size) {
@@ -140,18 +119,19 @@ HashTable *new_hash_table(int size) {
 
 	//make sure the table is bigger then 0
 	if (size < 1) {
-		return NULL;
+		printf("Cannot instantiate table smaller then 1.");
+		exit(1);	
 	}
 
 	//allocate the hash table with check
 	if ((new_table = malloc(sizeof(HashTable))) == NULL) {
 		printf("Cannot allocate memory for the new HashTable\n");
-		return NULL;
+		exit(1);
 	}
 	// Allocate pointers to the head nodes.
 	if ((new_table->table = malloc(sizeof(Entry *) * size)) == NULL) {
 		printf("Cannot allocate memory for the new HashTable table\n");
-		return NULL;
+		exit(1);
 	}
 	for (i = 0; i < size; i++) {
 		new_table->table[i] = NULL;
@@ -175,12 +155,19 @@ unsigned hash(char *key, int size)
 	while (c = *key++) {
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 	}
-
 	return ((unsigned)hash % size);
 }
 
-/*Get a key from the hashtable*/
-Entry *get(HashTable *self, char *key) {
+/*Get a value corresponding to a key from the hashtable*/
+char *get(HashTable *self, char *key) {
+	Entry *result = in(self, key);
+	if (result == NULL) {
+		printf("Keyerror. Key '%s' not in hashtable", key);
+	}
+	return result->value;
+}
+
+Entry *in(HashTable *self, char *key) {
 	struct Entry *entry_pointer;
 
 	//Look for an entry as long as there are more entries, in case of collisions
@@ -207,7 +194,7 @@ Entry *add(HashTable *self, char *key, char *value) {
 	}
 
 	//no key found with name of key
-	if ((entry_pointer = get(self, key)) == NULL) {
+	if ((entry_pointer = in(self, key)) == NULL) {
 		entry_pointer = (Entry *)malloc(sizeof(*entry_pointer));
 		//check if there is a problem allocating memory 
 		if (entry_pointer == NULL || ((entry_pointer->key = _strdup(key)) == NULL)) {

@@ -183,12 +183,136 @@ void count_GC_content(int *counts, char *line) {
 	}
 }
 
+HashTable *create_aa_table() {
+	// setup the amino acid table
+	HashTable *amino_acid_table = new_hash_table(81); // save amount of space, and because of the limited alphabet 81 works out better
+	amino_acid_table->add(amino_acid_table, "GCU", "A");
+	amino_acid_table->add(amino_acid_table, "GCC", "A");
+	amino_acid_table->add(amino_acid_table, "GCA", "A");
+	amino_acid_table->add(amino_acid_table, "GCG", "A");
+
+	amino_acid_table->add(amino_acid_table, "CGU", "R");
+	amino_acid_table->add(amino_acid_table, "CGC", "R");
+	amino_acid_table->add(amino_acid_table, "CGA", "R");
+	amino_acid_table->add(amino_acid_table, "CGG", "R");
+	amino_acid_table->add(amino_acid_table, "AGA", "R");
+	amino_acid_table->add(amino_acid_table, "AGG", "R");
+
+	amino_acid_table->add(amino_acid_table, "AAU", "N");
+	amino_acid_table->add(amino_acid_table, "AAC", "N");
+
+	amino_acid_table->add(amino_acid_table, "GAU", "D");
+	amino_acid_table->add(amino_acid_table, "GAC", "D");
+
+	amino_acid_table->add(amino_acid_table, "UGU", "C");
+	amino_acid_table->add(amino_acid_table, "UGC", "C");
+
+	amino_acid_table->add(amino_acid_table, "CAA", "Q");
+	amino_acid_table->add(amino_acid_table, "CAG", "Q");
+
+	amino_acid_table->add(amino_acid_table, "GAA", "E");
+	amino_acid_table->add(amino_acid_table, "GAG", "E");
+
+	amino_acid_table->add(amino_acid_table, "GGU", "G");
+	amino_acid_table->add(amino_acid_table, "GGC", "G");
+	amino_acid_table->add(amino_acid_table, "GGA", "G");
+	amino_acid_table->add(amino_acid_table, "GGG", "G");
+
+	amino_acid_table->add(amino_acid_table, "CAU", "H");
+	amino_acid_table->add(amino_acid_table, "CAC", "H");
+
+	amino_acid_table->add(amino_acid_table, "AUG", "M");
+
+	amino_acid_table->add(amino_acid_table, "AUU", "I");
+	amino_acid_table->add(amino_acid_table, "AUC", "I");
+	amino_acid_table->add(amino_acid_table, "AUA", "I");
+
+	amino_acid_table->add(amino_acid_table, "CUU", "L");
+	amino_acid_table->add(amino_acid_table, "CUC", "L");
+	amino_acid_table->add(amino_acid_table, "CUA", "L");
+	amino_acid_table->add(amino_acid_table, "CUG", "L");
+	amino_acid_table->add(amino_acid_table, "UUA", "L");
+	amino_acid_table->add(amino_acid_table, "UUG", "L");
+
+	amino_acid_table->add(amino_acid_table, "AAA", "K");
+	amino_acid_table->add(amino_acid_table, "AAG", "K");
+
+	amino_acid_table->add(amino_acid_table, "UUU", "F");
+	amino_acid_table->add(amino_acid_table, "UUC", "F");
+
+	amino_acid_table->add(amino_acid_table, "CCU", "P");
+	amino_acid_table->add(amino_acid_table, "CCC", "P");
+	amino_acid_table->add(amino_acid_table, "CCA", "P");
+	amino_acid_table->add(amino_acid_table, "CCG", "P");
+
+	amino_acid_table->add(amino_acid_table, "UCU", "S");
+	amino_acid_table->add(amino_acid_table, "UCC", "S");
+	amino_acid_table->add(amino_acid_table, "UCA", "S");
+	amino_acid_table->add(amino_acid_table, "UCG", "S");
+	amino_acid_table->add(amino_acid_table, "AGU", "S");
+	amino_acid_table->add(amino_acid_table, "AGC", "S");
+
+	amino_acid_table->add(amino_acid_table, "ACU", "T");
+	amino_acid_table->add(amino_acid_table, "ACC", "T");
+	amino_acid_table->add(amino_acid_table, "ACA", "T");
+	amino_acid_table->add(amino_acid_table, "ACG", "T");
+
+	amino_acid_table->add(amino_acid_table, "UGG", "W");
+
+	amino_acid_table->add(amino_acid_table, "UAU", "Y");
+	amino_acid_table->add(amino_acid_table, "UAC", "Y");
+
+	amino_acid_table->add(amino_acid_table, "GUU", "V");
+	amino_acid_table->add(amino_acid_table, "GUC", "V");
+	amino_acid_table->add(amino_acid_table, "GUA", "V");
+	amino_acid_table->add(amino_acid_table, "GUG", "V");
+
+	// the 3 stop codons
+	amino_acid_table->add(amino_acid_table, "UAA", "X");
+	amino_acid_table->add(amino_acid_table, "UGA", "X");
+	amino_acid_table->add(amino_acid_table, "UAG", "X");
+
+	return amino_acid_table;
+}
+
 int translating_RNA_into_protein(char *argv[]) {
 	// read the input file into memory
 	input_file_pointer = open_file(argv[2], "r");
 	output_file_pointer = open_file("output.txt", "w");
-	main_hash();
+	char *rna_string = read_file(input_file_pointer);
+
+	char *protein_strand = translate_RNA(rna_string);
+	fprintf(output_file_pointer, "%s", protein_strand);
+
 	fclose(input_file_pointer);
 	fclose(output_file_pointer);
 	return 0;
+}
+
+char *translate_RNA(char *rna_string) {
+	HashTable *aa_table = create_aa_table();
+	char ch;
+	char codon[4];
+	int total_aas = strlen(rna_string) / 3;
+	char *protein_strand;
+
+	protein_strand = (char *) malloc(sizeof(char) * (total_aas + 1)); // to include the '\0'
+
+	int codon_index = 0;
+	int protein_stand_index = 0;
+	while (ch = *rna_string++) {
+		codon[codon_index] = ch;
+		codon_index++;
+		if (codon_index == 3) {
+			codon[codon_index] = '\0';
+			char *value = aa_table->get(aa_table, codon);
+			if (value[0] != 'X') {
+				protein_strand[protein_stand_index] = value[0];
+				protein_stand_index++;
+				codon_index = 0;
+			}
+		}
+	}
+	protein_strand[protein_stand_index] = '\0';
+	return protein_strand;
 }

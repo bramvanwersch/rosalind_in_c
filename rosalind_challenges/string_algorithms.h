@@ -8,3 +8,4 @@ void complement_DNA();
 int computing_GC_content(char *argv[]);
 void count_GC_content(int *counts, char *line);
 int translating_RNA_into_protein(char *argv[]);
+char *translate_RNA(char *rna_string);
