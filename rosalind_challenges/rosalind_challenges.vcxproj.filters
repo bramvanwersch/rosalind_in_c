@@ -27,6 +27,9 @@
     <ClCompile Include="allignment_algorithms.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="combinatorics_algorithms.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_functions.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="allignment_algorithms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="combinatorics_algorithms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

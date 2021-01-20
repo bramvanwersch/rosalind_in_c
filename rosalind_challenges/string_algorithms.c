@@ -5,8 +5,6 @@
 #include "general_functions.h"
 #include "string_algorithms.h"
 
-void complement_DNA();
-
 FILE *input_file_pointer;
 FILE *output_file_pointer;
 int dna_counts[] = { 0, 0, 0, 0 };
@@ -125,22 +123,24 @@ int computing_GC_content(char *argv[]) {
 	char best_name[100];
 	char *best_name_pointer = best_name;
 	LinkedList *lines = read_lines(input_file_pointer);
+	LinkedEntry *line = lines->root;
 
-	while (lines->next != NULL) {
-		if (lines->value[0] == '>') {
+	while (line->next != NULL) {
+		char *entry_value = (char *)line->value;
+		if (entry_value[0] == '>') {
 			float gc_content = (counts[0] / (float)counts[1]);
 			if (gc_content > best_gc) {
 				best_gc = gc_content;
 				strcpy_s(best_name, 100, name);
 			}
-			strcpy_s(name, 100, lines->value);
+			strcpy_s(name, 100, entry_value);
 			counts[0] = 0;
 			counts[1] = 0;
 		}
 		else {
-			count_GC_content(counts, lines->value);
+			count_GC_content(counts, entry_value);
 		}
-		lines = lines->next;
+		line = line->next;
 	}
 
 	float gc_content = (counts[0] / (float)counts[1]);
@@ -315,4 +315,58 @@ char *translate_RNA(char *rna_string) {
 	}
 	protein_strand[protein_stand_index] = '\0';
 	return protein_strand;
+}
+
+LinkedList *find_motif_start_locations(char *search_string, char *motif);
+
+int finding_a_motif_in_DNA(char *argv[]) {
+	// read the input file into memory
+	input_file_pointer = open_file(argv[2], "r");
+	output_file_pointer = open_file("output.txt", "w");
+	LinkedList *input_lines = read_lines(input_file_pointer);
+	LinkedEntry *line_entry = input_lines->root;
+
+	char *search_string = (char *) line_entry->value;
+	char *motif = (char *) line_entry->next->value;
+	LinkedList *start_locations = find_motif_start_locations(search_string, motif);
+	LinkedEntry *location = start_locations->root;
+	while (location->value != NULL) {
+		int number = *(int *)location->value;
+		if (location->next->value == NULL) {
+			fprintf(output_file_pointer, "%d", number);
+		}
+		else{
+			fprintf(output_file_pointer, "%d ", number);
+		}
+		
+		location = location->next;
+	}
+
+	fclose(output_file_pointer);
+	fclose(input_file_pointer);
+	return 0;
+}
+
+LinkedList *find_motif_start_locations(char *search_string, char *motif) {
+	int search_len = strlen(search_string);
+	int motif_len = strlen(motif);
+	int match;
+
+	LinkedList *start_locations = new_linked_list();
+
+	for (int search_index = 0; search_index < search_len; search_index++) {
+		match = True;
+		for (int motif_index = 0; motif_index < motif_len; motif_index++) {
+			if (search_string[search_index + motif_index] != motif[motif_index]) {
+				match = False;
+				break;
+			}
+		}
+		if (match == True) {
+			int *motif_location = malloc(sizeof(int));
+			*motif_location =  search_index + 1;
+			start_locations->next(start_locations, motif_location);
+		}
+	}
+	return start_locations;
 }

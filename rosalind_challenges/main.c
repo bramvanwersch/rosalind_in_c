@@ -2,7 +2,7 @@
 #include <string.h>
 #include "string_algorithms.h"
 #include "allignment_algorithms.h"
-
+#include "combinatorics_algorithms.h"
 
 int main(int argc, char *argv[]) {
 	// expected argv argument argv[1] = name of challenge, argv[2:] = other arguments
@@ -32,6 +32,12 @@ int main(int argc, char *argv[]) {
 	}
 	else if (strcmp(argv[1], "translating_RNA_into_protein") == 0) {
 		result = translating_RNA_into_protein(argv);
+	}
+	else if (strcmp(argv[1], "inferring_mRNA_from_protein") == 0) {
+		result = inferring_mRNA_from_protein(argv);
+	}
+	else if (strcmp(argv[1], "finding_a_motif_in_DNA") == 0) {
+		result = finding_a_motif_in_DNA(argv);
 	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);
