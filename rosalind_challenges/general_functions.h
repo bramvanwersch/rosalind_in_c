@@ -15,6 +15,8 @@ typedef struct LinkedList {
 	struct LinkedEntry *root;
 	struct LinkedEntry *end;
 	LinkedEntry *(*next)(struct LinkedList *self, void *value);
+	void **(*to_array)(struct LinkedList *self, size_t from, size_t until);
+	size_t size;
 }LinkedList;
 
 LinkedList* new_linked_list();

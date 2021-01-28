@@ -281,7 +281,7 @@ int translating_RNA_into_protein(char *argv[]) {
 	output_file_pointer = open_file("output.txt", "w");
 	char *rna_string = read_file(input_file_pointer);
 
-	char *protein_strand = translate_RNA(rna_string);
+	char *protein_strand = RNA_to_protein(rna_string);
 	fprintf(output_file_pointer, "%s", protein_strand);
 
 	fclose(input_file_pointer);
@@ -289,7 +289,7 @@ int translating_RNA_into_protein(char *argv[]) {
 	return 0;
 }
 
-char *translate_RNA(char *rna_string) {
+char *RNA_to_protein(char *rna_string) {
 	HashTable *aa_table = create_aa_table();
 	char ch;
 	char codon[4];
@@ -308,9 +308,10 @@ char *translate_RNA(char *rna_string) {
 			char *value = aa_table->get(aa_table, codon);
 			if (value[0] != 'X') {
 				protein_strand[protein_stand_index] = value[0];
-				protein_stand_index++;
-				codon_index = 0;
+
 			}
+			protein_stand_index++;
+			codon_index = 0;
 		}
 	}
 	protein_strand[protein_stand_index] = '\0';
@@ -363,10 +364,180 @@ LinkedList *find_motif_start_locations(char *search_string, char *motif) {
 			}
 		}
 		if (match == True) {
-			int *motif_location = malloc(sizeof(int));
+			int *motif_location = (int *)malloc(sizeof(int));
 			*motif_location =  search_index + 1;
 			start_locations->next(start_locations, motif_location);
 		}
 	}
 	return start_locations;
+}
+
+char *remove_introns(char *main_strand, char **intron_sequences, int no_seqs);
+char **get_sorted_intron_sequences(LinkedList *all_sequences);
+char *remove_introns_and_translate(LinkedList *input_lines);
+HashTable *get_hash_fasta_lines(LinkedList *lines);
+LinkedList *get_linked_fasta_lines(LinkedList *lines);
+
+int RNA_splicing(char *argv[]) {
+	// read the input file into memory
+	input_file_pointer = open_file(argv[2], "r");
+	output_file_pointer = open_file("output.txt", "w");
+	LinkedList *input_lines = read_lines(input_file_pointer);
+	char *prot_seq = remove_introns_and_translate(input_lines);
+	printf("OR: %s\n", prot_seq);
+	fprintf(output_file_pointer, "%s", prot_seq);
+	fclose(output_file_pointer);
+	fclose(input_file_pointer);
+	return 0;
+}
+
+char *remove_introns_and_translate(LinkedList *input_lines) {
+	LinkedList *fasta_lines = get_linked_fasta_lines(input_lines);
+	char *main_strand = (char *)fasta_lines->root->value;
+	char **intron_sequences = get_sorted_intron_sequences(fasta_lines);
+	char *DNA = remove_introns(main_strand, intron_sequences, fasta_lines->size - 1);
+	
+	char *RNA = DNA_to_RNA(DNA);
+	char *protein = RNA_to_protein(RNA);
+	return protein;
+}
+
+/*load a fasta format file into a linked list of sequences*/
+LinkedList *get_linked_fasta_lines(LinkedList *lines) {
+	LinkedEntry *entry = lines->root;
+
+	LinkedList *fasta_lines = new_linked_list();
+	char *value = NULL;
+	char *temp_value;
+	int value_len = 0;
+	while (entry->value != NULL) {
+		char *line = (char *)entry->value;
+		if (line[0] == '>') {
+			if (value != NULL) {
+				fasta_lines->next(fasta_lines, value);
+			}
+			value = NULL;
+			value_len = 0;
+		}
+		else if (value == NULL) {
+			value_len = strlen(line);
+			temp_value = malloc(sizeof(char) * (value_len + 1));
+			strcpy_s(temp_value, value_len + 1, line);
+			value = temp_value;
+			value[value_len] = '\0';
+		}
+		else {
+			value_len += strlen(line);
+			temp_value = malloc(sizeof(char) * (value_len + 1));
+			strcpy_s(temp_value, value_len + 1, value);
+
+			free(value);
+			strcat_s(temp_value, value_len + 1, line);
+			value = temp_value;
+		}
+		entry = entry->next;
+	}
+	fasta_lines->next(fasta_lines, value);
+	return fasta_lines;
+}
+
+/*Load a fasta file into a hashtable keyed on sequence names*/
+HashTable *get_hash_fasta_lines(LinkedList *lines) {
+	LinkedEntry *entry = lines->root;
+	HashTable *fasta_lines = new_hash_table(lines->size);
+	char *key = NULL;
+	char *value = NULL;
+	char *temp_value;
+	int value_len = 0;
+	while (entry->value != NULL) {
+		char *line = (char *)entry->value;
+		if (line[0] == '>') {
+			if (value != NULL) {
+				fasta_lines->add(fasta_lines, key, value);
+			}
+			key = line;
+			value = NULL;
+			value_len = 0;
+		}
+		else if (value == NULL) {
+			value_len = strlen(line);
+			temp_value = malloc(value_len + 1);
+			strcpy_s(temp_value, value_len + 1, line);
+			value = temp_value;
+		}
+		else{
+			value_len += strlen(line);
+			temp_value = malloc(value_len + 1);
+			strcpy_s(temp_value, value_len, value);
+			free(value);
+			strcat_s(temp_value, value_len, line);
+			value = temp_value;
+		}
+		entry = entry->next;
+	}
+	fasta_lines->add(fasta_lines, key, value);
+
+	fasta_lines->print(fasta_lines);
+	return fasta_lines;
+}
+
+/*For sorting strings long to small*/
+int compare(const void * ca, const void * cb) {
+	char **a = (char **)ca;
+	char **b = (char **)cb;
+
+	size_t fa = strlen(*a);
+	size_t fb = strlen(*b);
+	return fb - fa;
+}
+
+char **get_sorted_intron_sequences(LinkedList *all_sequences) {
+	char **intron_sequences = (char **) all_sequences->to_array(all_sequences, 1, all_sequences->size);
+	qsort(intron_sequences, all_sequences->size - 1, sizeof(char *), compare);
+	return intron_sequences;
+}
+
+char *remove_introns(char *main_strand, char **intron_sequences, int no_seqs){
+	int main_strand_size = strlen(main_strand);
+	char *buffer = malloc(sizeof(char) * main_strand_size);
+	int buffer_location = 0;
+
+	for (int main_strand_index = 0; main_strand_index < main_strand_size; main_strand_index++){
+		int failed;
+		int intron_seq_index;
+		for (int i = 0; intron_sequences[i]; i++){
+			char *intron_seq = intron_sequences[i];
+			failed = False;
+			for (intron_seq_index = 0; intron_seq[intron_seq_index]; intron_seq_index++) {
+				if (!main_strand[main_strand_index + intron_seq_index] || intron_seq[intron_seq_index] != main_strand[main_strand_index + intron_seq_index]) {
+					failed = True;
+					break;
+				}
+			}
+			if (failed == False) {
+				break;
+			}
+		}
+		if (failed == False) {
+			main_strand_index += intron_seq_index - 1;
+		}
+		else {
+			buffer[buffer_location++] = main_strand[main_strand_index];
+		}
+	}
+	buffer[buffer_location] = '\0';
+	char *DNA = malloc(sizeof(char) * (buffer_location + 1));
+	int t = strcpy_s(DNA, buffer_location + 1, buffer);
+	free(buffer);
+	return DNA;
+}
+
+char *DNA_to_RNA(char *DNA) {
+	for (int index = 0; DNA[index]; index++) {
+
+		if (DNA[index] == 'T') {
+			DNA[index] = 'U';
+		}
+	}
+	return DNA;
 }

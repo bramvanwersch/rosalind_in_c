@@ -5,8 +5,11 @@
 #include "general_functions.h"
 
 #define ERROR_BUFFER_SIZE 100
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 LinkedEntry *next(LinkedList *self, void *value);
+void **to_array(LinkedList *self, size_t from, size_t until);
 
 LinkedList *new_linked_list(void) {
 	LinkedList *new_list = (LinkedList *)malloc(sizeof(LinkedList));
@@ -14,6 +17,8 @@ LinkedList *new_linked_list(void) {
 	new_list->root = root_entry;
 	new_list->end = root_entry;
 	new_list->next = next;
+	new_list->to_array = to_array;
+	new_list->size = 0;
 	return new_list;
 }
 
@@ -24,7 +29,40 @@ LinkedEntry *next(LinkedList *self, void *value) {
 	new_entry->next = NULL;
 	new_entry->value = NULL;
 	self->end = new_entry;
+	self->size++;
 	return new_entry;
+}
+
+void **to_array(LinkedList *self, size_t from, size_t until) {
+	if (until <= from) {
+		printf("Error: From must be smaller then until.");
+		exit(1);
+	}
+	from = MAX(0, from);
+	until = MIN(self->size, until);
+	void **out_array = malloc(sizeof(void *) * ((until - from) + 1));
+	if (out_array == NULL) {
+		printf("Error. Could not allocate memory for array.");
+		exit(1);
+	}
+	LinkedEntry *entry = self->root;
+	size_t index = 0;
+	size_t out_index = 0;
+	while (entry->next != NULL) {
+		if (index < from) {
+		}
+		else if (index > until) {
+			break;
+		}
+		else {
+			out_array[out_index++] = entry->value;
+		}
+		entry = entry->next;
+		index++;
+	}
+	out_array[out_index] = NULL;
+	
+	return out_array;
 }
 
 unsigned hash(char *key, int size);
@@ -88,6 +126,7 @@ char *get(HashTable *self, char *key) {
 	HashEntry *result = in(self, key);
 	if (result == NULL) {
 		printf("Keyerror. Key '%s' not in hashtable", key);
+		exit(1);
 	}
 	return result->value;
 }

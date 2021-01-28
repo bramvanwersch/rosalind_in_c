@@ -9,7 +9,7 @@ FILE *input_file_pointer;
 FILE *output_file_pointer;
 
 HashTable *get_aa_codon_numbers();
-int mRNA_possibilities(char *protein);
+long long mRNA_possibilities(char *protein);
 
 HashTable *get_aa_codon_numbers() {
 	HashTable *aa_codon_numbers = new_hash_table(81);
@@ -43,15 +43,15 @@ int inferring_mRNA_from_protein(char *argv[]) {
 	input_file_pointer = open_file(argv[2], "r");
 	output_file_pointer = open_file("output.txt", "w");
 	char *protein = read_file(input_file_pointer);
-	int result = mRNA_possibilities(protein);
-	printf("Modulo 1.000.000 possibilities: %d\n", result);
-	fprintf(output_file_pointer, "%d", result);
+	long long result = mRNA_possibilities(protein);
+	printf("Modulo 1.000.000 possibilities: %lld\n", result);
+	fprintf(output_file_pointer, "%lld", result);
 	fclose(output_file_pointer);
 	fclose(input_file_pointer);
 	return 0;
 }
 
-int mRNA_possibilities(char *protein) {
+long long mRNA_possibilities(char *protein) {
 	int total = 1;
 	long long modulo_total = 1;
 	char ch;
