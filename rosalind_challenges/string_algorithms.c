@@ -366,7 +366,7 @@ LinkedList *find_motif_start_locations(char *search_string, char *motif) {
 		if (match == True) {
 			int *motif_location = (int *)malloc(sizeof(int));
 			*motif_location =  search_index + 1;
-			start_locations->next(start_locations, motif_location);
+			start_locations->add(start_locations, motif_location);
 		}
 	}
 	return start_locations;
@@ -396,7 +396,7 @@ char *remove_introns_and_translate(LinkedList *input_lines) {
 	char *main_strand = (char *)fasta_lines->root->value;
 	char **intron_sequences = get_sorted_intron_sequences(fasta_lines);
 	char *DNA = remove_introns(main_strand, intron_sequences, fasta_lines->size - 1);
-	
+	fasta_lines->print(fasta_lines);
 	char *RNA = DNA_to_RNA(DNA);
 	char *protein = RNA_to_protein(RNA);
 	return protein;
@@ -414,7 +414,7 @@ LinkedList *get_linked_fasta_lines(LinkedList *lines) {
 		char *line = (char *)entry->value;
 		if (line[0] == '>') {
 			if (value != NULL) {
-				fasta_lines->next(fasta_lines, value);
+				fasta_lines->add(fasta_lines, value);
 			}
 			value = NULL;
 			value_len = 0;
@@ -437,7 +437,7 @@ LinkedList *get_linked_fasta_lines(LinkedList *lines) {
 		}
 		entry = entry->next;
 	}
-	fasta_lines->next(fasta_lines, value);
+	fasta_lines->add(fasta_lines, value);
 	return fasta_lines;
 }
 

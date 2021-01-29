@@ -127,6 +127,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="data_structures.c">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="general_functions.c">
       <SubType>
       </SubType>
@@ -143,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="allignment_algorithms.h" />
     <ClInclude Include="combinatorics_algorithms.h" />
+    <ClInclude Include="data_structures.h" />
     <ClInclude Include="general_functions.h" />
     <ClInclude Include="string_algorithms.h" />
   </ItemGroup>
