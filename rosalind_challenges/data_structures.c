@@ -10,7 +10,7 @@
 
 LinkedEntry *add_entry(LinkedList *self, void *value);
 void **to_array(LinkedList *self, size_t from, size_t until);
-void print_linked_list(LinkedList *self);
+void print_linked_list(LinkedList *self, char type);
 
 LinkedList *new_linked_list(void) {
 	LinkedList *new_list = (LinkedList *)malloc(sizeof(LinkedList));
@@ -67,7 +67,8 @@ void **to_array(LinkedList *self, size_t from, size_t until) {
 	return out_array;
 }
 
-void print_linked_list(LinkedList *self) {
+void print_linked_list(LinkedList *self, char type) {
+	// couple of possible types s = string, i = int, f = float
 	LinkedEntry *entry = self->root;
 	printf("LinkedList of size %d\n", self->size);
 	int index = 0;
@@ -76,7 +77,21 @@ void print_linked_list(LinkedList *self) {
 			printf("%d: NULL\n", index);
 		}
 		else {
-			printf("%d: %s\n", index, entry->value);
+			switch (type)
+			{
+			case ('s'):
+				printf("%d: %s\n", index, (char *)entry->value);
+				break;
+			case ('i'):
+				printf("%d: %d\n", index, *(int *)entry->value);
+				break;
+			case ('f'):
+				printf("%d: %f\n", index, *(double *)entry->value);
+				break;
+			default:
+				printf("Unrecognized type %c", type);
+				break;
+			}
 		}
 		index++;
 		entry = entry->next;
