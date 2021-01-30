@@ -396,7 +396,7 @@ char *remove_introns_and_translate(LinkedList *input_lines) {
 	char *main_strand = (char *)fasta_lines->root->value;
 	char **intron_sequences = get_sorted_intron_sequences(fasta_lines);
 	char *DNA = remove_introns(main_strand, intron_sequences, fasta_lines->size - 1);
-	fasta_lines->print(fasta_lines);
+	fasta_lines->print(fasta_lines, 's');
 	char *RNA = DNA_to_RNA(DNA);
 	char *protein = RNA_to_protein(RNA);
 	return protein;
@@ -541,3 +541,49 @@ char *DNA_to_RNA(char *DNA) {
 	}
 	return DNA;
 }
+
+LinkedList *get_spliced_indices(char *sequence, char *sub_sequence) {
+	int seq_index = 0;
+	LinkedList *indices = new_linked_list();
+	for (int sub_seq_index = 0; sub_sequence[sub_seq_index]; sub_seq_index++) {
+		for (; sequence[seq_index]; seq_index++) {
+			char sub_seq_char = sub_sequence[sub_seq_index];
+			char seq_char = sequence[seq_index];
+			if (sub_seq_char == seq_char) {
+				int *location = (int *) malloc(sizeof(int));
+				*location = seq_index + 1;
+				indices->add(indices, location);
+				seq_index++;
+				break;
+			}
+
+		}
+	}
+	return indices;
+}
+
+int finding_a_spliced_motif(char *argv[]) {
+	// read the input file into memory
+	input_file_pointer = open_file(argv[2], "r");
+	output_file_pointer = open_file("output.txt", "w");
+	LinkedList *lines = read_lines(input_file_pointer);
+	LinkedList *fasta_lines = get_linked_fasta_lines(lines);
+	LinkedList *indices = get_spliced_indices(fasta_lines->root->value, fasta_lines->root->next->value);
+	LinkedEntry *entry = indices->root;
+	while (entry->next != NULL) {
+		if (entry->next->next == NULL) {
+			fprintf(output_file_pointer, "%d", *(int *)entry->value);
+		}
+		else {
+			fprintf(output_file_pointer, "%d ", *(int *)entry->value);
+		}
+		entry = entry->next;
+	}
+
+
+	fclose(output_file_pointer);
+	fclose(input_file_pointer);
+	return 0;
+
+}
+

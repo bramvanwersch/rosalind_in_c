@@ -42,6 +42,9 @@ int main(int argc, char *argv[]) {
 	else if (strcmp(argv[1], "RNA_splicing") == 0) {
 		result = RNA_splicing(argv);
 	}
+	else if (strcmp(argv[1], "finding_a_spliced_motif") == 0) {
+		result = finding_a_spliced_motif(argv);
+	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);
 		return 2;
