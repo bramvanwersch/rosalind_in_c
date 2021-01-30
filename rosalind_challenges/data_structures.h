@@ -20,6 +20,7 @@ typedef struct LinkedList {
 }LinkedList;
 
 LinkedList* new_linked_list();
+int test_linked_list();
 
 /*hashtable structures*/
 typedef struct HashEntry {

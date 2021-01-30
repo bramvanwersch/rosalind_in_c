@@ -4,6 +4,12 @@
 #include "allignment_algorithms.h"
 #include "combinatorics_algorithms.h"
 
+
+int test(char *argv[]) {
+	test_linked_list();
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
 	// expected argv argument argv[1] = name of challenge, argv[2:] = other arguments
 	int result;
@@ -44,6 +50,9 @@ int main(int argc, char *argv[]) {
 	}
 	else if (strcmp(argv[1], "finding_a_spliced_motif") == 0) {
 		result = finding_a_spliced_motif(argv);
+	}
+	else if (strcmp(argv[1], "test") == 0) {
+		result = test(argv);
 	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);

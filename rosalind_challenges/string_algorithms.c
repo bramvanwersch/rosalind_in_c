@@ -569,6 +569,7 @@ int finding_a_spliced_motif(char *argv[]) {
 	LinkedList *lines = read_lines(input_file_pointer);
 	LinkedList *fasta_lines = get_linked_fasta_lines(lines);
 	LinkedList *indices = get_spliced_indices(fasta_lines->root->value, fasta_lines->root->next->value);
+
 	LinkedEntry *entry = indices->root;
 	while (entry->next != NULL) {
 		if (entry->next->next == NULL) {

@@ -15,6 +15,10 @@ void print_linked_list(LinkedList *self, char type);
 LinkedList *new_linked_list(void) {
 	LinkedList *new_list = (LinkedList *)malloc(sizeof(LinkedList));
 	LinkedEntry *root_entry = (LinkedEntry *)malloc(sizeof(LinkedEntry));
+
+	root_entry->value = NULL;
+	root_entry->next = NULL;
+
 	new_list->root = root_entry;
 	new_list->end = root_entry;
 	new_list->add = add_entry;
@@ -37,14 +41,14 @@ LinkedEntry *add_entry(LinkedList *self, void *value) {
 
 void **to_array(LinkedList *self, size_t from, size_t until) {
 	if (until <= from) {
-		printf("Error: From must be smaller then until.");
+		printf("Error: From (%d) must be smaller then until (%d).\n", from , until);
 		exit(1);
 	}
 	from = MAX(0, from);
 	until = MIN(self->size, until);
 	void **out_array = malloc(sizeof(void *) * ((until - from) + 1));
 	if (out_array == NULL) {
-		printf("Error. Could not allocate memory for array.");
+		printf("Error. Could not allocate memory for array.\n");
 		exit(1);
 	}
 	LinkedEntry *entry = self->root;
@@ -70,32 +74,51 @@ void **to_array(LinkedList *self, size_t from, size_t until) {
 void print_linked_list(LinkedList *self, char type) {
 	// couple of possible types s = string, i = int, f = float
 	LinkedEntry *entry = self->root;
-	printf("LinkedList of size %d\n", self->size);
-	int index = 0;
+	printf("[");
 	while (entry->next != NULL) {
 		if (entry->value == NULL) {
-			printf("%d: NULL\n", index);
+			printf("NULL");
 		}
 		else {
-			switch (type)
-			{
+			switch (type) {
 			case ('s'):
-				printf("%d: %s\n", index, (char *)entry->value);
+				printf("%s", (char *)entry->value);
 				break;
 			case ('i'):
-				printf("%d: %d\n", index, *(int *)entry->value);
+				printf("%d", *(int *)entry->value);
 				break;
 			case ('f'):
-				printf("%d: %f\n", index, *(double *)entry->value);
+				printf("%f", *(double *)entry->value);
 				break;
 			default:
 				printf("Unrecognized type %c", type);
 				break;
 			}
 		}
-		index++;
+		if (entry->next->next != NULL) {
+			printf(", ");
+		}
+
 		entry = entry->next;
 	}
+	printf("]\n");
+}
+
+int test_linked_list() {
+	LinkedList *test = new_linked_list();
+	test->to_array(test, 0, test->size);
+
+	test->print(test, 's');
+	test->add(test, "test1");
+	test->print(test, 's');
+	test->to_array(test, 0, test->size);
+	test->add(test, "test2");
+	test->add(test, "test3");
+	test->add(test, "test4");
+	test->print(test, 's');
+	test->to_array(test, 0, test->size);
+	
+	return 0;
 }
 
 
