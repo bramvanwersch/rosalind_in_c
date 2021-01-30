@@ -375,15 +375,13 @@ LinkedList *find_motif_start_locations(char *search_string, char *motif) {
 char *remove_introns(char *main_strand, char **intron_sequences, int no_seqs);
 char **get_sorted_intron_sequences(LinkedList *all_sequences);
 char *remove_introns_and_translate(LinkedList *input_lines);
-HashTable *get_hash_fasta_lines(LinkedList *lines);
-LinkedList *get_linked_fasta_lines(LinkedList *lines);
 
 int RNA_splicing(char *argv[]) {
 	// read the input file into memory
 	input_file_pointer = open_file(argv[2], "r");
 	output_file_pointer = open_file("output.txt", "w");
-	LinkedList *input_lines = read_lines(input_file_pointer);
-	char *prot_seq = remove_introns_and_translate(input_lines);
+	LinkedList *fasta_lines = get_linked_fasta_lines(input_file_pointer);
+	char *prot_seq = remove_introns_and_translate(fasta_lines);
 	printf("OR: %s\n", prot_seq);
 	fprintf(output_file_pointer, "%s", prot_seq);
 	fclose(output_file_pointer);
@@ -391,8 +389,7 @@ int RNA_splicing(char *argv[]) {
 	return 0;
 }
 
-char *remove_introns_and_translate(LinkedList *input_lines) {
-	LinkedList *fasta_lines = get_linked_fasta_lines(input_lines);
+char *remove_introns_and_translate(LinkedList *fasta_lines) {
 	char *main_strand = (char *)fasta_lines->root->value;
 	char **intron_sequences = get_sorted_intron_sequences(fasta_lines);
 	char *DNA = remove_introns(main_strand, intron_sequences, fasta_lines->size - 1);
@@ -400,85 +397,6 @@ char *remove_introns_and_translate(LinkedList *input_lines) {
 	char *RNA = DNA_to_RNA(DNA);
 	char *protein = RNA_to_protein(RNA);
 	return protein;
-}
-
-/*load a fasta format file into a linked list of sequences*/
-LinkedList *get_linked_fasta_lines(LinkedList *lines) {
-	LinkedEntry *entry = lines->root;
-
-	LinkedList *fasta_lines = new_linked_list('s');
-	char *value = NULL;
-	char *temp_value;
-	int value_len = 0;
-	while (entry->value != NULL) {
-		char *line = (char *)entry->value;
-		if (line[0] == '>') {
-			if (value != NULL) {
-				fasta_lines->add(fasta_lines, value);
-			}
-			value = NULL;
-			value_len = 0;
-		}
-		else if (value == NULL) {
-			value_len = strlen(line);
-			temp_value = malloc(sizeof(char) * (value_len + 1));
-			strcpy_s(temp_value, value_len + 1, line);
-			value = temp_value;
-			value[value_len] = '\0';
-		}
-		else {
-			value_len += strlen(line);
-			temp_value = malloc(sizeof(char) * (value_len + 1));
-			strcpy_s(temp_value, value_len + 1, value);
-
-			free(value);
-			strcat_s(temp_value, value_len + 1, line);
-			value = temp_value;
-		}
-		entry = entry->next;
-	}
-	fasta_lines->add(fasta_lines, value);
-	return fasta_lines;
-}
-
-/*Load a fasta file into a hashtable keyed on sequence names*/
-HashTable *get_hash_fasta_lines(LinkedList *lines) {
-	LinkedEntry *entry = lines->root;
-	HashTable *fasta_lines = new_hash_table(lines->size, 's');
-	char *key = NULL;
-	char *value = NULL;
-	char *temp_value;
-	int value_len = 0;
-	while (entry->value != NULL) {
-		char *line = (char *)entry->value;
-		if (line[0] == '>') {
-			if (value != NULL) {
-				fasta_lines->add(fasta_lines, key, value);
-			}
-			key = line;
-			value = NULL;
-			value_len = 0;
-		}
-		else if (value == NULL) {
-			value_len = strlen(line);
-			temp_value = malloc(value_len + 1);
-			strcpy_s(temp_value, value_len + 1, line);
-			value = temp_value;
-		}
-		else{
-			value_len += strlen(line);
-			temp_value = malloc(value_len + 1);
-			strcpy_s(temp_value, value_len, value);
-			free(value);
-			strcat_s(temp_value, value_len, line);
-			value = temp_value;
-		}
-		entry = entry->next;
-	}
-	fasta_lines->add(fasta_lines, key, value);
-
-	fasta_lines->print(fasta_lines);
-	return fasta_lines;
 }
 
 /*For sorting strings long to small*/
@@ -566,8 +484,7 @@ int finding_a_spliced_motif(char *argv[]) {
 	// read the input file into memory
 	input_file_pointer = open_file(argv[2], "r");
 	output_file_pointer = open_file("output.txt", "w");
-	LinkedList *lines = read_lines(input_file_pointer);
-	LinkedList *fasta_lines = get_linked_fasta_lines(lines);
+	LinkedList *fasta_lines = get_linked_fasta_lines(input_file_pointer);
 	LinkedList *indices = get_spliced_indices(fasta_lines->root->value, fasta_lines->root->next->value);
 
 	LinkedEntry *entry = indices->root;

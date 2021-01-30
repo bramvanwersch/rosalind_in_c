@@ -389,7 +389,7 @@ int test_hash_table() {
 	test_table->print(test_table);
 	print_full_hash_table(test_table);
 
-	printf("%s\n", test_table->get(test_table, "key1"));
+	printf("%s\n", (char *)test_table->get(test_table, "key1"));
 	test_table->delete(test_table, "key1");
 	test_table->print(test_table);
 

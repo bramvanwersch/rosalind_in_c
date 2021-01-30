@@ -14,5 +14,4 @@ char *RNA_to_protein(char *rna_string);
 int finding_a_motif_in_DNA(char *argv[]);
 int RNA_splicing(char *argv[]);
 char *DNA_to_RNA(char *DNA);
-LinkedList *get_linked_fasta_lines(LinkedList *lines);
 int finding_a_spliced_motif(char *argv[]);

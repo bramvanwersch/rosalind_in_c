@@ -52,6 +52,9 @@ int main(int argc, char *argv[]) {
 	else if (strcmp(argv[1], "finding_a_spliced_motif") == 0) {
 		result = finding_a_spliced_motif(argv);
 	}
+	else if (strcmp(argv[1], "transitions_and_transversions") == 0) {
+		result = transitions_and_transversions(argv);
+	}
 	else if (strcmp(argv[1], "test") == 0) {
 		result = test(argv);
 	}

@@ -87,3 +87,46 @@ LinkedList* read_lines(FILE *file_pointer) {
 	free(buffer);
 	return all_lines;
 }
+
+/*load a fasta format file into a linked list of sequences*/
+LinkedList *get_linked_fasta_lines(FILE *input_file_pointer) {
+
+	// read lines
+	LinkedList *lines = read_lines(input_file_pointer);
+	LinkedEntry *entry = lines->root;
+
+	// take the fasta lines and make sure to collect the DNA sequences over multiple newlines
+	LinkedList *fasta_lines = new_linked_list('s');
+	char *value = NULL;
+	char *temp_value;
+	int value_len = 0;
+	while (entry->value != NULL) {
+		char *line = (char *)entry->value;
+		if (line[0] == '>') {
+			if (value != NULL) {
+				fasta_lines->add(fasta_lines, value);
+			}
+			value = NULL;
+			value_len = 0;
+		}
+		else if (value == NULL) {
+			value_len = strlen(line);
+			temp_value = malloc(sizeof(char) * (value_len + 1));
+			strcpy_s(temp_value, value_len + 1, line);
+			value = temp_value;
+			value[value_len] = '\0';
+		}
+		else {
+			value_len += strlen(line);
+			temp_value = malloc(sizeof(char) * (value_len + 1));
+			strcpy_s(temp_value, value_len + 1, value);
+
+			free(value);
+			strcat_s(temp_value, value_len + 1, line);
+			value = temp_value;
+		}
+		entry = entry->next;
+	}
+	fasta_lines->add(fasta_lines, value);
+	return fasta_lines;
+}
