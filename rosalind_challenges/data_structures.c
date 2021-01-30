@@ -117,14 +117,14 @@ void print_linked_list(LinkedList *self) {
 
 // HASHTABLE FUNCTIONS
 unsigned hash(char *key, int size);
-char *get(HashTable *table, char *key);
+void *get(HashTable *table, char *key);
 HashEntry *in(HashTable *self, char *key);
 HashEntry *add_key(HashTable *table, char *key, void *value);
 void increase_table_size(HashTable *table);
 int delete(HashTable *self, char *key);
 void free_entry(HashEntry *e);
 void print_hash_table(HashTable *self);
-void print_hash_entry(HashEntry *e, int index);
+void print_hash_entry(HashEntry *e, int index, char type);
 
 /*Create a new hash table*/
 HashTable *new_hash_table(int size, char type) {
@@ -174,7 +174,7 @@ unsigned hash(char *key, int size)
 }
 
 /*Get a value corresponding to a key from the hashtable*/
-char *get(HashTable *self, char *key) {
+void *get(HashTable *self, char *key) {
 	HashEntry *result = in(self, key);
 	if (result == NULL) {
 		printf("Keyerror. Key '%s' not in hashtable", key);
@@ -201,16 +201,10 @@ HashEntry *in(HashTable *self, char *key) {
 HashEntry *add_key(HashTable *self, char *key, void *value) {
 	HashEntry *entry_pointer;
 	unsigned hash_value;
-	self->current_size++;
-
-	// when the dictionary becomes to big collision becomes more likely, so increase the size
-	if (self->current_size > (int)(self->max_size * 0.8)) {
-		increase_table_size(self);
-
-	}
 
 	//no key found with name of key
 	if ((entry_pointer = in(self, key)) == NULL) {
+		self->current_size++;
 		entry_pointer = (HashEntry *)malloc(sizeof(*entry_pointer));
 		//check if there is a problem allocating memory 
 		if (entry_pointer == NULL || ((entry_pointer->key = _strdup(key)) == NULL)) {
@@ -232,6 +226,11 @@ HashEntry *add_key(HashTable *self, char *key, void *value) {
 		printf("Not enough memory to place new entry in table\n");
 		exit(1);
 
+	}
+
+	// when the dictionary becomes to big collision becomes more likely, so increase the size
+	if (self->current_size > (int)(self->max_size * 0.8)) {
+		increase_table_size(self);
 	}
 	return entry_pointer;
 }
@@ -295,31 +294,53 @@ void free_entry(HashEntry *e) {
 	free(e);
 }
 
-/*Function for printing the hashtable*/
 void print_hash_table(HashTable *self) {
+	printf("{");
+	int printed_first = False;
+	for (int i = 0; i < self->max_size; i++) {
+		HashEntry *entry_pointer = self->table[i];
+		if (entry_pointer != NULL) {
+			do {
+				if (printed_first != False) {
+					printf(", ");
+				}
+				else {
+					printed_first = True;
+				}
+				printf("%s: ", entry_pointer->key);
+				print_type(self->type, entry_pointer->value);
+			} while ((entry_pointer = entry_pointer->next) != NULL);
+		}
+	}
+	printf("}\n");
+}
+
+/*Function for printing the hashtable with additional information displaying the table and collisions*/
+void print_full_hash_table(HashTable *self) {
 	int i;
 
 	printf("Hastable of size %d:{\n", self->max_size);
 	for (i = 0; i < self->max_size; i++) {
 		HashEntry *entry_pointer = self->table[i];
 		if (entry_pointer != NULL) {
-			print_hash_entry(entry_pointer, i);
+			print_hash_entry(entry_pointer, i, self->type);
 		}
 	}
 	printf("}\n");
 }
 
 /*Recursive function for printing entries of the hashtable*/
-void print_hash_entry(HashEntry *e, int index) {
+void print_hash_entry(HashEntry *e, int index, char type) {
 	//if the index is bigger it is a genuine index. Else it is an indicator that is a repeat.
 	if (index >= 0) {
-		printf("\tEntry %d, %s: %s", index, e->key, e->value);
+		printf("\tEntry %d = %s: ", index, e->key);
 	}
 	else {
-		printf(", %s: %s", e->key, e->value);
+		printf(", %s: ", e->key);
 	}
+	print_type(type, e->value);
 	if (e->next != NULL) {
-		print_hash_entry(e->next, -1);
+		print_hash_entry(e->next, -1, type);
 	}
 	else {
 		printf("\n");
@@ -329,6 +350,7 @@ void print_hash_entry(HashEntry *e, int index) {
 // TESTING FUNCTIONS
 
 int test_linked_list() {
+	printf("Start LinkedList tests:\n");
 	LinkedList *test = new_linked_list('s');
 	test->print(test);
 	test->add(test, "test1");
@@ -340,19 +362,37 @@ int test_linked_list() {
 	test->print(test);
 
 	LinkedList *test2 = new_linked_list('d');
-	int k = 1;
+	int i = 1;
 	int j = 5;
-	test2->add(test2, &k);
+	test2->add(test2, &i);
 	test2->add(test2, &j);
 	test2->print(test2);
 	test->to_array(test, 0, test->size);
 
+	printf("LinkedList tests finished succesfully\n\n");
 	return 0;
 }
 
 int test_hash_table() {
+	printf("Start HashTable tests:\n");
 	HashTable *test_table = new_hash_table(4, 's');
 	test_table->print(test_table);
 	test_table->add(test_table, "key1", "value1");
+	test_table->add(test_table, "key1", "value2");
+	test_table->add(test_table, "key_number_2", "value2");
+	test_table->add(test_table, "key3", "value24");
+
+	test_table->print(test_table);
+	print_full_hash_table(test_table);
+	test_table->add(test_table, "key4", "value23");
+
+	test_table->print(test_table);
+	print_full_hash_table(test_table);
+
+	printf("%s\n", test_table->get(test_table, "key1"));
+	test_table->delete(test_table, "key1");
+	test_table->print(test_table);
+
+	printf("Hashtable tests finished succesfully\n\n");
 	return 0;
 }

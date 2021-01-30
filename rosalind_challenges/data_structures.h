@@ -2,6 +2,8 @@
 #include <stdio.h>
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
+#define True 1
+#define False 0
 
 
 /*Linked list structures*/
@@ -35,7 +37,7 @@ typedef struct HashTable {
 	int current_size;
 	char type;
 	struct HashEntry **table;
-	char *(*get)(struct HashTable *self, char *key);
+	void *(*get)(struct HashTable *self, char *key);
 	HashEntry *(*add)(struct HashTable *self, char *key, void *value);
 	int(*delete)(struct HashTable *self, char *key);
 	void(*print)(struct HashTable *self);
