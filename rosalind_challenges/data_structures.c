@@ -8,11 +8,34 @@
 
 #define ERROR_BUFFER_SIZE 100
 
+// GENERAL USE FUNCTIONS
+void print_type(char type, void *value) {
+	switch (type) {
+	case ('s'):
+		printf("%s", (char *)value);
+		break;
+	case ('d'):
+		printf("%d", *(int *)value);
+		break;
+	case ('f'):
+		printf("%f", *(double *)value);
+		break;
+	case ('p'):
+		printf("%p", value);
+		break;
+	default:
+		printf("Unrecognized type %c", type);
+		break;
+	}
+}
+
+//LINKED LIST FUNCTIONS
+
 LinkedEntry *add_entry(LinkedList *self, void *value);
 void **to_array(LinkedList *self, size_t from, size_t until);
-void print_linked_list(LinkedList *self, char type);
+void print_linked_list(LinkedList *self);
 
-LinkedList *new_linked_list(void) {
+LinkedList *new_linked_list(char type) {
 	LinkedList *new_list = (LinkedList *)malloc(sizeof(LinkedList));
 	LinkedEntry *root_entry = (LinkedEntry *)malloc(sizeof(LinkedEntry));
 
@@ -20,6 +43,7 @@ LinkedList *new_linked_list(void) {
 	root_entry->next = NULL;
 
 	new_list->root = root_entry;
+	new_list->type = type;
 	new_list->end = root_entry;
 	new_list->add = add_entry;
 	new_list->to_array = to_array;
@@ -71,8 +95,8 @@ void **to_array(LinkedList *self, size_t from, size_t until) {
 	return out_array;
 }
 
-void print_linked_list(LinkedList *self, char type) {
-	// couple of possible types s = string, i = int, f = float
+void print_linked_list(LinkedList *self) {
+	// couple of possible types s = string, d = int, f = double, p = pointers --> works for any value.
 	LinkedEntry *entry = self->root;
 	printf("[");
 	while (entry->next != NULL) {
@@ -80,20 +104,7 @@ void print_linked_list(LinkedList *self, char type) {
 			printf("NULL");
 		}
 		else {
-			switch (type) {
-			case ('s'):
-				printf("%s", (char *)entry->value);
-				break;
-			case ('i'):
-				printf("%d", *(int *)entry->value);
-				break;
-			case ('f'):
-				printf("%f", *(double *)entry->value);
-				break;
-			default:
-				printf("Unrecognized type %c", type);
-				break;
-			}
+			print_type(self->type, entry->value);
 		}
 		if (entry->next->next != NULL) {
 			printf(", ");
@@ -104,29 +115,11 @@ void print_linked_list(LinkedList *self, char type) {
 	printf("]\n");
 }
 
-int test_linked_list() {
-	LinkedList *test = new_linked_list();
-	test->to_array(test, 0, test->size);
-
-	test->print(test, 's');
-	test->add(test, "test1");
-	test->print(test, 's');
-	test->to_array(test, 0, test->size);
-	test->add(test, "test2");
-	test->add(test, "test3");
-	test->add(test, "test4");
-	test->print(test, 's');
-	test->to_array(test, 0, test->size);
-	
-	return 0;
-}
-
-
 // HASHTABLE FUNCTIONS
 unsigned hash(char *key, int size);
 char *get(HashTable *table, char *key);
 HashEntry *in(HashTable *self, char *key);
-HashEntry *add_key(HashTable *table, char *key, char *value);
+HashEntry *add_key(HashTable *table, char *key, void *value);
 void increase_table_size(HashTable *table);
 int delete(HashTable *self, char *key);
 void free_entry(HashEntry *e);
@@ -134,7 +127,7 @@ void print_hash_table(HashTable *self);
 void print_hash_entry(HashEntry *e, int index);
 
 /*Create a new hash table*/
-HashTable *new_hash_table(int size) {
+HashTable *new_hash_table(int size, char type) {
 	int i;
 	HashTable *new_table;
 
@@ -159,6 +152,7 @@ HashTable *new_hash_table(int size) {
 	}
 
 	new_table->max_size = size;
+	new_table->type = type;
 	//asign the function pointers
 	new_table->add = add_key;
 	new_table->get = get;
@@ -204,7 +198,7 @@ HashEntry *in(HashTable *self, char *key) {
 }
 
 /*Add a key to the hashtable or replace the old values*/
-HashEntry *add_key(HashTable *self, char *key, char *value) {
+HashEntry *add_key(HashTable *self, char *key, void *value) {
 	HashEntry *entry_pointer;
 	unsigned hash_value;
 	self->current_size++;
@@ -330,4 +324,35 @@ void print_hash_entry(HashEntry *e, int index) {
 	else {
 		printf("\n");
 	}
+}
+
+// TESTING FUNCTIONS
+
+int test_linked_list() {
+	LinkedList *test = new_linked_list('s');
+	test->print(test);
+	test->add(test, "test1");
+	test->print(test);
+	test->to_array(test, 0, test->size);
+	test->add(test, "test2");
+	test->add(test, "test3");
+	test->add(test, "test4");
+	test->print(test);
+
+	LinkedList *test2 = new_linked_list('d');
+	int k = 1;
+	int j = 5;
+	test2->add(test2, &k);
+	test2->add(test2, &j);
+	test2->print(test2);
+	test->to_array(test, 0, test->size);
+
+	return 0;
+}
+
+int test_hash_table() {
+	HashTable *test_table = new_hash_table(4, 's');
+	test_table->print(test_table);
+	test_table->add(test_table, "key1", "value1");
+	return 0;
 }

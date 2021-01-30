@@ -48,7 +48,7 @@ LinkedList* read_lines(FILE *file_pointer) {
 	int long line_byte_size;
 	char ch;
 	char *line;
-	LinkedList* all_lines = new_linked_list();
+	LinkedList* all_lines = new_linked_list('s');
 
 	// allocate sufficient memory for any possible line --> might be overkill or realy bad, not sure
 	fseek(file_pointer, 0, SEEK_END);

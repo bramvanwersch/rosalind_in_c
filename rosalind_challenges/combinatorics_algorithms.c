@@ -12,7 +12,7 @@ HashTable *get_aa_codon_numbers();
 long long mRNA_possibilities(char *protein);
 
 HashTable *get_aa_codon_numbers() {
-	HashTable *aa_codon_numbers = new_hash_table(81);
+	HashTable *aa_codon_numbers = new_hash_table(81, 's');
 	aa_codon_numbers->add(aa_codon_numbers, "A", "4");
 	aa_codon_numbers->add(aa_codon_numbers, "R", "6");
 	aa_codon_numbers->add(aa_codon_numbers, "N", "2");

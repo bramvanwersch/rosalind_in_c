@@ -185,7 +185,7 @@ void count_GC_content(int *counts, char *line) {
 
 HashTable *create_aa_table() {
 	// setup the amino acid table
-	HashTable *amino_acid_table = new_hash_table(81); // save amount of space, and because of the limited alphabet 81 works out better
+	HashTable *amino_acid_table = new_hash_table(81, 's'); // save amount of space, and because of the limited alphabet 81 works out better
 	amino_acid_table->add(amino_acid_table, "GCU", "A");
 	amino_acid_table->add(amino_acid_table, "GCC", "A");
 	amino_acid_table->add(amino_acid_table, "GCA", "A");
@@ -353,7 +353,7 @@ LinkedList *find_motif_start_locations(char *search_string, char *motif) {
 	int motif_len = strlen(motif);
 	int match;
 
-	LinkedList *start_locations = new_linked_list();
+	LinkedList *start_locations = new_linked_list('i');
 
 	for (int search_index = 0; search_index < search_len; search_index++) {
 		match = True;
@@ -396,7 +396,7 @@ char *remove_introns_and_translate(LinkedList *input_lines) {
 	char *main_strand = (char *)fasta_lines->root->value;
 	char **intron_sequences = get_sorted_intron_sequences(fasta_lines);
 	char *DNA = remove_introns(main_strand, intron_sequences, fasta_lines->size - 1);
-	fasta_lines->print(fasta_lines, 's');
+	fasta_lines->print(fasta_lines);
 	char *RNA = DNA_to_RNA(DNA);
 	char *protein = RNA_to_protein(RNA);
 	return protein;
@@ -406,7 +406,7 @@ char *remove_introns_and_translate(LinkedList *input_lines) {
 LinkedList *get_linked_fasta_lines(LinkedList *lines) {
 	LinkedEntry *entry = lines->root;
 
-	LinkedList *fasta_lines = new_linked_list();
+	LinkedList *fasta_lines = new_linked_list('s');
 	char *value = NULL;
 	char *temp_value;
 	int value_len = 0;
@@ -444,7 +444,7 @@ LinkedList *get_linked_fasta_lines(LinkedList *lines) {
 /*Load a fasta file into a hashtable keyed on sequence names*/
 HashTable *get_hash_fasta_lines(LinkedList *lines) {
 	LinkedEntry *entry = lines->root;
-	HashTable *fasta_lines = new_hash_table(lines->size);
+	HashTable *fasta_lines = new_hash_table(lines->size, 's');
 	char *key = NULL;
 	char *value = NULL;
 	char *temp_value;
@@ -544,7 +544,7 @@ char *DNA_to_RNA(char *DNA) {
 
 LinkedList *get_spliced_indices(char *sequence, char *sub_sequence) {
 	int seq_index = 0;
-	LinkedList *indices = new_linked_list();
+	LinkedList *indices = new_linked_list('i');
 	for (int sub_seq_index = 0; sub_sequence[sub_seq_index]; sub_seq_index++) {
 		for (; sequence[seq_index]; seq_index++) {
 			char sub_seq_char = sub_sequence[sub_seq_index];

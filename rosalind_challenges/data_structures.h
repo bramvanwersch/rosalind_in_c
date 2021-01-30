@@ -11,15 +11,16 @@ typedef struct LinkedEntry {
 }LinkedEntry;
 
 typedef struct LinkedList {
+	char type;
 	struct LinkedEntry *root;
 	struct LinkedEntry *end;
 	LinkedEntry *(*add)(struct LinkedList *self, void *value);
 	void **(*to_array)(struct LinkedList *self, size_t from, size_t until);
 	size_t size;
-	void (*print)(struct LinkedList *self, char type);
+	void (*print)(struct LinkedList *self);
 }LinkedList;
 
-LinkedList* new_linked_list();
+LinkedList* new_linked_list(char type);
 int test_linked_list();
 
 /*hashtable structures*/
@@ -32,11 +33,13 @@ typedef struct HashEntry {
 typedef struct HashTable {
 	int max_size;
 	int current_size;
+	char type;
 	struct HashEntry **table;
 	char *(*get)(struct HashTable *self, char *key);
-	HashEntry *(*add)(struct HashTable *self, char *key, char *value);
+	HashEntry *(*add)(struct HashTable *self, char *key, void *value);
 	int(*delete)(struct HashTable *self, char *key);
 	void(*print)(struct HashTable *self);
 } HashTable;
 
-HashTable *new_hash_table(int size);
+HashTable *new_hash_table(int size, char type);
+int test_hash_table();
