@@ -505,3 +505,77 @@ int finding_a_spliced_motif(char *argv[]) {
 
 }
 
+LinkedList *find_restriction_sites(char *sequence);
+
+int locating_restriction_sites(char *argv[]) {
+	// read the input file into memory
+	input_file_pointer = open_file(argv[2], "r");
+	output_file_pointer = open_file("output.txt", "w");
+	
+	LinkedList *fasta_lines = get_linked_fasta_lines(input_file_pointer);
+	char *sequence = fasta_lines->root->value;
+	LinkedList *result = find_restriction_sites(sequence);
+	LinkedEntry *entry = result->root;
+
+	while (entry->next != NULL) {
+		int *value = entry->value;
+		if (entry->next->next == NULL) {
+			fprintf(output_file_pointer, "%d %d", value[0], value[1]);
+		}
+		else {
+			fprintf(output_file_pointer, "%d %d\n", value[0], value[1]);
+		}
+		printf("%d %d\n", value[0], value[1]);
+		entry = entry->next;
+	}
+
+	fclose(output_file_pointer);
+	fclose(input_file_pointer);
+	return 0;
+}
+
+LinkedList *find_restriction_sites(char *sequence) {
+	LinkedList *result = new_linked_list('p');
+	char base;
+	int seq_len = strlen(sequence);
+	for (int index = 0; index < seq_len; index++) {
+		base = sequence[index];
+		//find palindromes in a 4 to 12 range
+		for (int palindrome_range = 4; palindrome_range <= MIN(seq_len - index , 12); palindrome_range += 2) {
+			int succes = True;
+			for (int offset = 0; offset < palindrome_range / 2; offset++) {
+				// test if A vs T or C vs G
+				if (abs(sequence[index + offset] - sequence[index + palindrome_range - 1 - offset]) == 19 || 
+					abs(sequence[index + offset] - sequence[index + palindrome_range - 1 - offset]) == 4) {
+					continue;
+				}
+				else {
+					succes = False;
+					break;
+				}
+			}
+			if (succes == True) {
+				int *r_palindrome = malloc(sizeof(int) * 2);
+				r_palindrome[0] = index + 1;
+				r_palindrome[1] = palindrome_range;
+				result->add(result, r_palindrome);
+			}
+		}
+	}
+	return result;
+}
+
+int open_reading_frames(char *argv[]) {
+	// read the input file into memory
+	input_file_pointer = open_file(argv[2], "r");
+	output_file_pointer = open_file("output.txt", "w");
+
+	LinkedList *fasta_lines = get_linked_fasta_lines(input_file_pointer);
+	char *sequence = fasta_lines->root->value;
+
+
+	fclose(output_file_pointer);
+	fclose(input_file_pointer);
+	return 0;
+}
+

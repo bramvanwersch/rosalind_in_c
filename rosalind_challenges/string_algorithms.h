@@ -15,3 +15,5 @@ int finding_a_motif_in_DNA(char *argv[]);
 int RNA_splicing(char *argv[]);
 char *DNA_to_RNA(char *DNA);
 int finding_a_spliced_motif(char *argv[]);
+int locating_restriction_sites(char *argv[]);
+int open_reading_frames(char *argv[]);

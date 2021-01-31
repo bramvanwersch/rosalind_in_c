@@ -55,6 +55,12 @@ int main(int argc, char *argv[]) {
 	else if (strcmp(argv[1], "transitions_and_transversions") == 0) {
 		result = transitions_and_transversions(argv);
 	}
+	else if (strcmp(argv[1], "locating_restriction_sites") == 0) {
+		result = locating_restriction_sites(argv);
+	}
+	else if (strcmp(argv[1], "open_reading_frames") == 0) {
+		result = open_reading_frames(argv);
+	}
 	else if (strcmp(argv[1], "test") == 0) {
 		result = test(argv);
 	}
