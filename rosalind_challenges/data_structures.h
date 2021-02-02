@@ -16,10 +16,11 @@ typedef struct LinkedList {
 	char type;
 	struct LinkedEntry *root;
 	struct LinkedEntry *end;
-	LinkedEntry *(*add)(struct LinkedList *self, void *value);
+	LinkedEntry *(*append)(struct LinkedList *self, void *value);
 	void **(*to_array)(struct LinkedList *self, size_t from, size_t until);
 	size_t size;
 	void (*print)(struct LinkedList *self);
+	void (*delete)(struct LinkedList *self);
 }LinkedList;
 
 LinkedList* new_linked_list(char type);

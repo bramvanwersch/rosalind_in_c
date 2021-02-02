@@ -183,98 +183,6 @@ void count_GC_content(int *counts, char *line) {
 	}
 }
 
-HashTable *create_aa_table() {
-	// setup the amino acid table
-	HashTable *amino_acid_table = new_hash_table(81, 's'); // save amount of space, and because of the limited alphabet 81 works out better
-	amino_acid_table->add(amino_acid_table, "GCU", "A");
-	amino_acid_table->add(amino_acid_table, "GCC", "A");
-	amino_acid_table->add(amino_acid_table, "GCA", "A");
-	amino_acid_table->add(amino_acid_table, "GCG", "A");
-
-	amino_acid_table->add(amino_acid_table, "CGU", "R");
-	amino_acid_table->add(amino_acid_table, "CGC", "R");
-	amino_acid_table->add(amino_acid_table, "CGA", "R");
-	amino_acid_table->add(amino_acid_table, "CGG", "R");
-	amino_acid_table->add(amino_acid_table, "AGA", "R");
-	amino_acid_table->add(amino_acid_table, "AGG", "R");
-
-	amino_acid_table->add(amino_acid_table, "AAU", "N");
-	amino_acid_table->add(amino_acid_table, "AAC", "N");
-
-	amino_acid_table->add(amino_acid_table, "GAU", "D");
-	amino_acid_table->add(amino_acid_table, "GAC", "D");
-
-	amino_acid_table->add(amino_acid_table, "UGU", "C");
-	amino_acid_table->add(amino_acid_table, "UGC", "C");
-
-	amino_acid_table->add(amino_acid_table, "CAA", "Q");
-	amino_acid_table->add(amino_acid_table, "CAG", "Q");
-
-	amino_acid_table->add(amino_acid_table, "GAA", "E");
-	amino_acid_table->add(amino_acid_table, "GAG", "E");
-
-	amino_acid_table->add(amino_acid_table, "GGU", "G");
-	amino_acid_table->add(amino_acid_table, "GGC", "G");
-	amino_acid_table->add(amino_acid_table, "GGA", "G");
-	amino_acid_table->add(amino_acid_table, "GGG", "G");
-
-	amino_acid_table->add(amino_acid_table, "CAU", "H");
-	amino_acid_table->add(amino_acid_table, "CAC", "H");
-
-	amino_acid_table->add(amino_acid_table, "AUG", "M");
-
-	amino_acid_table->add(amino_acid_table, "AUU", "I");
-	amino_acid_table->add(amino_acid_table, "AUC", "I");
-	amino_acid_table->add(amino_acid_table, "AUA", "I");
-
-	amino_acid_table->add(amino_acid_table, "CUU", "L");
-	amino_acid_table->add(amino_acid_table, "CUC", "L");
-	amino_acid_table->add(amino_acid_table, "CUA", "L");
-	amino_acid_table->add(amino_acid_table, "CUG", "L");
-	amino_acid_table->add(amino_acid_table, "UUA", "L");
-	amino_acid_table->add(amino_acid_table, "UUG", "L");
-
-	amino_acid_table->add(amino_acid_table, "AAA", "K");
-	amino_acid_table->add(amino_acid_table, "AAG", "K");
-
-	amino_acid_table->add(amino_acid_table, "UUU", "F");
-	amino_acid_table->add(amino_acid_table, "UUC", "F");
-
-	amino_acid_table->add(amino_acid_table, "CCU", "P");
-	amino_acid_table->add(amino_acid_table, "CCC", "P");
-	amino_acid_table->add(amino_acid_table, "CCA", "P");
-	amino_acid_table->add(amino_acid_table, "CCG", "P");
-
-	amino_acid_table->add(amino_acid_table, "UCU", "S");
-	amino_acid_table->add(amino_acid_table, "UCC", "S");
-	amino_acid_table->add(amino_acid_table, "UCA", "S");
-	amino_acid_table->add(amino_acid_table, "UCG", "S");
-	amino_acid_table->add(amino_acid_table, "AGU", "S");
-	amino_acid_table->add(amino_acid_table, "AGC", "S");
-
-	amino_acid_table->add(amino_acid_table, "ACU", "T");
-	amino_acid_table->add(amino_acid_table, "ACC", "T");
-	amino_acid_table->add(amino_acid_table, "ACA", "T");
-	amino_acid_table->add(amino_acid_table, "ACG", "T");
-
-	amino_acid_table->add(amino_acid_table, "UGG", "W");
-
-	amino_acid_table->add(amino_acid_table, "UAU", "Y");
-	amino_acid_table->add(amino_acid_table, "UAC", "Y");
-
-	amino_acid_table->add(amino_acid_table, "GUU", "V");
-	amino_acid_table->add(amino_acid_table, "GUC", "V");
-	amino_acid_table->add(amino_acid_table, "GUA", "V");
-	amino_acid_table->add(amino_acid_table, "GUG", "V");
-
-	// the 3 stop codons
-	amino_acid_table->add(amino_acid_table, "UAA", "X");
-	amino_acid_table->add(amino_acid_table, "UGA", "X");
-	amino_acid_table->add(amino_acid_table, "UAG", "X");
-
-	return amino_acid_table;
-}
-
 int translating_RNA_into_protein(char *argv[]) {
 	// read the input file into memory
 	input_file_pointer = open_file(argv[2], "r");
@@ -287,35 +195,6 @@ int translating_RNA_into_protein(char *argv[]) {
 	fclose(input_file_pointer);
 	fclose(output_file_pointer);
 	return 0;
-}
-
-char *RNA_to_protein(char *rna_string) {
-	HashTable *aa_table = create_aa_table();
-	char ch;
-	char codon[4];
-	int total_aas = strlen(rna_string) / 3;
-	char *protein_strand;
-
-	protein_strand = (char *) malloc(sizeof(char) * (total_aas + 1)); // to include the '\0'
-
-	int codon_index = 0;
-	int protein_stand_index = 0;
-	while (ch = *rna_string++) {
-		codon[codon_index] = ch;
-		codon_index++;
-		if (codon_index == 3) {
-			codon[codon_index] = '\0';
-			char *value = aa_table->get(aa_table, codon);
-			if (value[0] != 'X') {
-				protein_strand[protein_stand_index] = value[0];
-
-			}
-			protein_stand_index++;
-			codon_index = 0;
-		}
-	}
-	protein_strand[protein_stand_index] = '\0';
-	return protein_strand;
 }
 
 LinkedList *find_motif_start_locations(char *search_string, char *motif);
@@ -366,7 +245,7 @@ LinkedList *find_motif_start_locations(char *search_string, char *motif) {
 		if (match == True) {
 			int *motif_location = (int *)malloc(sizeof(int));
 			*motif_location =  search_index + 1;
-			start_locations->add(start_locations, motif_location);
+			start_locations->append(start_locations, motif_location);
 		}
 	}
 	return start_locations;
@@ -450,16 +329,6 @@ char *remove_introns(char *main_strand, char **intron_sequences, int no_seqs){
 	return DNA;
 }
 
-char *DNA_to_RNA(char *DNA) {
-	for (int index = 0; DNA[index]; index++) {
-
-		if (DNA[index] == 'T') {
-			DNA[index] = 'U';
-		}
-	}
-	return DNA;
-}
-
 LinkedList *get_spliced_indices(char *sequence, char *sub_sequence) {
 	int seq_index = 0;
 	LinkedList *indices = new_linked_list('i');
@@ -470,7 +339,7 @@ LinkedList *get_spliced_indices(char *sequence, char *sub_sequence) {
 			if (sub_seq_char == seq_char) {
 				int *location = (int *) malloc(sizeof(int));
 				*location = seq_index + 1;
-				indices->add(indices, location);
+				indices->append(indices, location);
 				seq_index++;
 				break;
 			}
@@ -558,12 +427,14 @@ LinkedList *find_restriction_sites(char *sequence) {
 				int *r_palindrome = malloc(sizeof(int) * 2);
 				r_palindrome[0] = index + 1;
 				r_palindrome[1] = palindrome_range;
-				result->add(result, r_palindrome);
+				result->append(result, r_palindrome);
 			}
 		}
 	}
 	return result;
 }
+
+LinkedList *extract_open_reading_frames(char *sequence);
 
 int open_reading_frames(char *argv[]) {
 	// read the input file into memory
@@ -572,10 +443,92 @@ int open_reading_frames(char *argv[]) {
 
 	LinkedList *fasta_lines = get_linked_fasta_lines(input_file_pointer);
 	char *sequence = fasta_lines->root->value;
+	char *r_sequence = reverse_complement_DNA(sequence);
+
+	printf("%s\n", sequence);
+	LinkedList *forward_orfs = extract_open_reading_frames(sequence);
+
+	printf("%s\n", r_sequence);
+	LinkedList *reverse_orfs = extract_open_reading_frames(r_sequence);
+
+	reverse_orfs->print(reverse_orfs);
+	forward_orfs->print(forward_orfs);
 
 
 	fclose(output_file_pointer);
 	fclose(input_file_pointer);
 	return 0;
+}
+
+LinkedList *extract_open_reading_frames(char *sequence) {
+	HashTable *amino_acid_table = get_aa_table();
+	LinkedList *orfs = new_linked_list('s');
+	int seq_len = strlen(sequence);
+	char codon[4];
+	int reading_frame;
+	LinkedList *current_orfs[3] = {NULL, NULL, NULL};
+
+	for (int index = 0; index < seq_len - 3; index++) {
+		for (int codon_index = 0; codon_index < 3; codon_index++) {
+			char nuc = sequence[index + codon_index];
+			if (nuc == 'T') {
+				nuc = 'U';
+			}
+			codon[codon_index] = nuc;
+		}
+		codon[3] = '\0';
+		char *aa = amino_acid_table->get(amino_acid_table, codon);
+		reading_frame = index % 3;
+		if (current_orfs[reading_frame] == NULL) {
+			if (aa[0] == 'M') {
+				current_orfs[reading_frame] = new_linked_list('s');
+				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0]);
+			}
+		}
+		else{
+			// save orf and all orfs contained in that orf into the orfs linked list
+			if (aa[0] == 'X') {
+				char *orf = (char *)malloc(sizeof(char) * (current_orfs[reading_frame]->size + 1));
+
+				LinkedEntry *entry = current_orfs[reading_frame]->root;
+				int index = 0;
+				LinkedList *internal_indexes = new_linked_list('d');
+				while (entry->next != NULL) {
+					char internal_aa = *(char *)entry->value;
+					// catch orfs inside other orfs
+					if (internal_aa == 'M' && index != 0) {
+						int c_index = *(int *)malloc(sizeof(int *));
+						c_index = index;
+						internal_indexes->append(internal_indexes, &c_index);
+					}
+					orf[index] = internal_aa;
+					entry = entry->next;
+					index++;
+				}
+				orf[index] = '\0';
+				orfs->append(orfs, orf);
+				entry = internal_indexes->root;
+				
+				// take the internal starting points and make new strings
+				while (entry->next != NULL) {
+					int start_index = *(int *)entry->value;
+					int buffer_size = (current_orfs[reading_frame]->size - start_index + 1);
+					char *orf_buffer = (char*)malloc(sizeof(char) * buffer_size);
+					memcpy(orf_buffer, &orf[start_index], buffer_size);
+					orfs->append(orfs, orf_buffer);
+					entry = entry->next;
+				}
+				// free the memory again
+				current_orfs[reading_frame]->delete(current_orfs[reading_frame]);
+				current_orfs[reading_frame] = NULL;
+				internal_indexes->delete(internal_indexes);
+			}
+			else {
+				// add the next amino acid
+				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0]);
+			}
+		}
+	}
+	return orfs;
 }
 

@@ -14,6 +14,9 @@ void print_type(char type, void *value) {
 	case ('s'):
 		printf("%s", (char *)value);
 		break;
+	case ('c'):
+		printf("%c", *(char *)value);
+		break;
 	case ('d'):
 		printf("%d", *(int *)value);
 		break;
@@ -34,6 +37,7 @@ void print_type(char type, void *value) {
 LinkedEntry *add_entry(LinkedList *self, void *value);
 void **to_array(LinkedList *self, size_t from, size_t until);
 void print_linked_list(LinkedList *self);
+void delete_linked_list(LinkedList *self);
 
 LinkedList *new_linked_list(char type) {
 	LinkedList *new_list = (LinkedList *)malloc(sizeof(LinkedList));
@@ -45,10 +49,11 @@ LinkedList *new_linked_list(char type) {
 	new_list->root = root_entry;
 	new_list->type = type;
 	new_list->end = root_entry;
-	new_list->add = add_entry;
+	new_list->append = add_entry;
 	new_list->to_array = to_array;
 	new_list->size = 0;
 	new_list->print = print_linked_list;
+	new_list->delete = delete_linked_list;
 	return new_list;
 }
 
@@ -93,6 +98,18 @@ void **to_array(LinkedList *self, size_t from, size_t until) {
 	out_array[out_index] = NULL;
 
 	return out_array;
+}
+
+void delete_linked_list(LinkedList *self) {
+	LinkedEntry *entry = self->root;
+	LinkedEntry *old_entry;
+	while (entry->next != NULL) {
+		old_entry = entry;
+		entry = entry->next;
+		free(old_entry);
+	}
+	free(self);
+	self = NULL;
 }
 
 void print_linked_list(LinkedList *self) {
@@ -177,7 +194,7 @@ unsigned hash(char *key, int size)
 void *get(HashTable *self, char *key) {
 	HashEntry *result = in(self, key);
 	if (result == NULL) {
-		printf("Keyerror. Key '%s' not in hashtable", key);
+		printf("Keyerror. Key '%s' not in hashtable\n", key);
 		exit(1);
 	}
 	return result->value;
@@ -353,21 +370,23 @@ int test_linked_list() {
 	printf("Start LinkedList tests:\n");
 	LinkedList *test = new_linked_list('s');
 	test->print(test);
-	test->add(test, "test1");
+	test->append(test, "test1");
 	test->print(test);
 	test->to_array(test, 0, test->size);
-	test->add(test, "test2");
-	test->add(test, "test3");
-	test->add(test, "test4");
+	test->append(test, "test2");
+	test->append(test, "test3");
+	test->append(test, "test4");
 	test->print(test);
 
 	LinkedList *test2 = new_linked_list('d');
 	int i = 1;
 	int j = 5;
-	test2->add(test2, &i);
-	test2->add(test2, &j);
+	test2->append(test2, &i);
+	test2->append(test2, &j);
 	test2->print(test2);
 	test->to_array(test, 0, test->size);
+
+	test2->delete(test2);
 
 	printf("LinkedList tests finished succesfully\n\n");
 	return 0;

@@ -6,6 +6,8 @@
 
 #define ERROR_BUFFER_SIZE 100
 
+HashTable *amino_acid_table = NULL;
+
 
 FILE* open_file(char *file_name, const char *mode) {
 	// open a file with error checking
@@ -73,7 +75,7 @@ LinkedList* read_lines(FILE *file_pointer) {
 			}
 
 			strcpy_s(line, buffer_index + 1, buffer);
-			all_lines->add(all_lines, line);
+			all_lines->append(all_lines, line);
 			buffer_index = 0;
 			if (ch == EOF) {
 				break;
@@ -104,7 +106,7 @@ LinkedList *get_linked_fasta_lines(FILE *input_file_pointer) {
 		char *line = (char *)entry->value;
 		if (line[0] == '>') {
 			if (value != NULL) {
-				fasta_lines->add(fasta_lines, value);
+				fasta_lines->append(fasta_lines, value);
 			}
 			value = NULL;
 			value_len = 0;
@@ -127,6 +129,175 @@ LinkedList *get_linked_fasta_lines(FILE *input_file_pointer) {
 		}
 		entry = entry->next;
 	}
-	fasta_lines->add(fasta_lines, value);
+	fasta_lines->append(fasta_lines, value);
 	return fasta_lines;
+}
+
+char *DNA_to_RNA(char *DNA) {
+	for (int index = 0; DNA[index]; index++) {
+
+		if (DNA[index] == 'T') {
+			DNA[index] = 'U';
+		}
+	}
+	return DNA;
+}
+
+
+// create the amino acid table on the first call then subsequently ignore calls
+HashTable *get_aa_table() {
+	// setup the amino acid table
+	if (amino_acid_table != NULL){
+		return amino_acid_table;
+	}
+	amino_acid_table = new_hash_table(81, 's'); // save amount of space, and because of the limited alphabet 81 works out better
+	amino_acid_table->add(amino_acid_table, "GCU", "A");
+	amino_acid_table->add(amino_acid_table, "GCC", "A");
+	amino_acid_table->add(amino_acid_table, "GCA", "A");
+	amino_acid_table->add(amino_acid_table, "GCG", "A");
+
+	amino_acid_table->add(amino_acid_table, "CGU", "R");
+	amino_acid_table->add(amino_acid_table, "CGC", "R");
+	amino_acid_table->add(amino_acid_table, "CGA", "R");
+	amino_acid_table->add(amino_acid_table, "CGG", "R");
+	amino_acid_table->add(amino_acid_table, "AGA", "R");
+	amino_acid_table->add(amino_acid_table, "AGG", "R");
+
+	amino_acid_table->add(amino_acid_table, "AAU", "N");
+	amino_acid_table->add(amino_acid_table, "AAC", "N");
+
+	amino_acid_table->add(amino_acid_table, "GAU", "D");
+	amino_acid_table->add(amino_acid_table, "GAC", "D");
+
+	amino_acid_table->add(amino_acid_table, "UGU", "C");
+	amino_acid_table->add(amino_acid_table, "UGC", "C");
+
+	amino_acid_table->add(amino_acid_table, "CAA", "Q");
+	amino_acid_table->add(amino_acid_table, "CAG", "Q");
+
+	amino_acid_table->add(amino_acid_table, "GAA", "E");
+	amino_acid_table->add(amino_acid_table, "GAG", "E");
+
+	amino_acid_table->add(amino_acid_table, "GGU", "G");
+	amino_acid_table->add(amino_acid_table, "GGC", "G");
+	amino_acid_table->add(amino_acid_table, "GGA", "G");
+	amino_acid_table->add(amino_acid_table, "GGG", "G");
+
+	amino_acid_table->add(amino_acid_table, "CAU", "H");
+	amino_acid_table->add(amino_acid_table, "CAC", "H");
+
+	amino_acid_table->add(amino_acid_table, "AUG", "M");
+
+	amino_acid_table->add(amino_acid_table, "AUU", "I");
+	amino_acid_table->add(amino_acid_table, "AUC", "I");
+	amino_acid_table->add(amino_acid_table, "AUA", "I");
+
+	amino_acid_table->add(amino_acid_table, "CUU", "L");
+	amino_acid_table->add(amino_acid_table, "CUC", "L");
+	amino_acid_table->add(amino_acid_table, "CUA", "L");
+	amino_acid_table->add(amino_acid_table, "CUG", "L");
+	amino_acid_table->add(amino_acid_table, "UUA", "L");
+	amino_acid_table->add(amino_acid_table, "UUG", "L");
+
+	amino_acid_table->add(amino_acid_table, "AAA", "K");
+	amino_acid_table->add(amino_acid_table, "AAG", "K");
+
+	amino_acid_table->add(amino_acid_table, "UUU", "F");
+	amino_acid_table->add(amino_acid_table, "UUC", "F");
+
+	amino_acid_table->add(amino_acid_table, "CCU", "P");
+	amino_acid_table->add(amino_acid_table, "CCC", "P");
+	amino_acid_table->add(amino_acid_table, "CCA", "P");
+	amino_acid_table->add(amino_acid_table, "CCG", "P");
+
+	amino_acid_table->add(amino_acid_table, "UCU", "S");
+	amino_acid_table->add(amino_acid_table, "UCC", "S");
+	amino_acid_table->add(amino_acid_table, "UCA", "S");
+	amino_acid_table->add(amino_acid_table, "UCG", "S");
+	amino_acid_table->add(amino_acid_table, "AGU", "S");
+	amino_acid_table->add(amino_acid_table, "AGC", "S");
+
+	amino_acid_table->add(amino_acid_table, "ACU", "T");
+	amino_acid_table->add(amino_acid_table, "ACC", "T");
+	amino_acid_table->add(amino_acid_table, "ACA", "T");
+	amino_acid_table->add(amino_acid_table, "ACG", "T");
+
+	amino_acid_table->add(amino_acid_table, "UGG", "W");
+
+	amino_acid_table->add(amino_acid_table, "UAU", "Y");
+	amino_acid_table->add(amino_acid_table, "UAC", "Y");
+
+	amino_acid_table->add(amino_acid_table, "GUU", "V");
+	amino_acid_table->add(amino_acid_table, "GUC", "V");
+	amino_acid_table->add(amino_acid_table, "GUA", "V");
+	amino_acid_table->add(amino_acid_table, "GUG", "V");
+
+	// the 3 stop codons
+	amino_acid_table->add(amino_acid_table, "UAA", "X");
+	amino_acid_table->add(amino_acid_table, "UGA", "X");
+	amino_acid_table->add(amino_acid_table, "UAG", "X");
+	return amino_acid_table;
+}
+
+char *RNA_to_protein(char *rna_string) {
+	HashTable *amino_acid_table = get_aa_table();
+	char ch;
+	char codon[4];
+	int total_aas = strlen(rna_string) / 3;
+	char *protein_strand;
+
+	protein_strand = (char *)malloc(sizeof(char) * (total_aas + 1)); // to include the '\0'
+
+	int codon_index = 0;
+	int protein_stand_index = 0;
+	while (ch = *rna_string++) {
+		codon[codon_index] = ch;
+		codon_index++;
+		if (codon_index == 3) {
+			codon[codon_index] = '\0';
+			char *value = amino_acid_table->get(amino_acid_table, codon);
+			if (value[0] != 'X') {
+				protein_strand[protein_stand_index] = value[0];
+
+			}
+			protein_stand_index++;
+			codon_index = 0;
+		}
+	}
+	protein_strand[protein_stand_index] = '\0';
+	return protein_strand;
+}
+
+char* reverse_complement_DNA(char *sequence) {
+	char ch;
+	int string_len;
+	string_len = strlen(sequence);
+
+	char *reverse_complement = malloc(sizeof(char) * (string_len + 1));
+
+	// move over the string in reverse and put the complement characters in the output_file
+	int rev_comp_index = 0;
+	while (--string_len >= 0) {
+		ch = sequence[string_len];
+		switch (ch) {
+		case 'A':
+			reverse_complement[rev_comp_index] = 'T';
+			break;
+		case 'C':
+			reverse_complement[rev_comp_index] = 'G';
+			break;
+		case 'G':
+			reverse_complement[rev_comp_index] = 'C';
+			break;
+		case 'T':
+			reverse_complement[rev_comp_index] = 'A';
+			break;
+		default:
+			fprintf(stderr, "Invalid character %d\n", ch);
+			exit(1);
+		}
+		rev_comp_index++;
+	}
+	reverse_complement[rev_comp_index] = '\0';
+	return reverse_complement;
 }
