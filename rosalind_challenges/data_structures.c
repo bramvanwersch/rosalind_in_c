@@ -7,8 +7,14 @@
 #include "data_structures.h"
 
 #define ERROR_BUFFER_SIZE 100
+#define MAX_HASH_TABLE_RACTION_FILL 0.8
+#define MIN_HASH_TABLE_FRACTION_FILL 0.3 // this value should be chosen in sutch a way that shrinking does not cause subsequent growing of the table
 
 // GENERAL USE FUNCTIONS
+
+void print_type(char type, void *value);
+void raise_memory_error(char *message);
+
 void print_type(char type, void *value) {
 	switch (type) {
 	case ('s'):
@@ -32,32 +38,54 @@ void print_type(char type, void *value) {
 	}
 }
 
+/*Signify the user there is not enough memory and exit*/
+void raise_memory_error(char *message) {
+	printf("MemoryError: Cannot allocate enought memory. %s", message);
+	exit(1);
+}
+
 //LINKED LIST FUNCTIONS
 
-LinkedEntry *add_entry(LinkedList *self, void *value);
+void append_entry(LinkedList *self, void *value);
 void **to_array(LinkedList *self, size_t from, size_t until);
 void print_linked_list(LinkedList *self);
 void delete_linked_list(LinkedList *self);
 
+/*
+Create a new LinkedList
+
+type (char): type used for certain type dependant operations. Type checking will never occur
+*/
 LinkedList *new_linked_list(char type) {
-	LinkedList *new_list = (LinkedList *)malloc(sizeof(LinkedList));
-	LinkedEntry *root_entry = (LinkedEntry *)malloc(sizeof(LinkedEntry));
+	LinkedList *new_list;
+	new_list = malloc(sizeof(*new_list));
+	if (new_list == NULL) {
+		raise_memory_error("LinkedList creation failed.");
+	}
+	LinkedEntry *root_entry;
+	root_entry = (LinkedEntry *)malloc(sizeof(*root_entry));
+	if (root_entry == NULL) {
+		raise_memory_error("LinkedList creation failed.");
+	}
 
 	root_entry->value = NULL;
 	root_entry->next = NULL;
 
-	new_list->root = root_entry;
+	// values
 	new_list->type = type;
+	new_list->root = root_entry;
 	new_list->end = root_entry;
-	new_list->append = add_entry;
-	new_list->to_array = to_array;
 	new_list->size = 0;
+
+	// functions
+	new_list->append = append_entry;
+	new_list->to_array = to_array;
 	new_list->print = print_linked_list;
 	new_list->delete = delete_linked_list;
 	return new_list;
 }
 
-LinkedEntry *add_entry(LinkedList *self, void *value) {
+void append_entry(LinkedList *self, void *value) {
 	LinkedEntry* new_entry = (LinkedEntry *)malloc(sizeof(LinkedEntry));
 	self->end->value = value;
 	self->end->next = new_entry;
@@ -65,7 +93,6 @@ LinkedEntry *add_entry(LinkedList *self, void *value) {
 	new_entry->value = NULL;
 	self->end = new_entry;
 	self->size++;
-	return new_entry;
 }
 
 void **to_array(LinkedList *self, size_t from, size_t until) {
@@ -135,11 +162,13 @@ void print_linked_list(LinkedList *self) {
 // HASHTABLE FUNCTIONS
 unsigned hash(char *key, int size);
 void *get(HashTable *table, char *key);
-HashEntry *in(HashTable *self, char *key);
-HashEntry *add_key(HashTable *table, char *key, void *value);
-void increase_table_size(HashTable *table);
-int delete(HashTable *self, char *key);
+int in_hash_table(HashTable *self, char *key);
+HashEntry *get_entry_at_key(HashTable *self, char *key);
+void add_key(HashTable *table, char *key, void *value);
+void change_hash_table_size(HashTable *table, int new_max_size);
+void remove_hash_entry(HashTable *self, char *key);
 void free_entry(HashEntry *e);
+char **hash_table_keys(HashTable *self);
 void print_hash_table(HashTable *self);
 void print_hash_entry(HashEntry *e, int index, char type);
 
@@ -168,18 +197,21 @@ HashTable *new_hash_table(int size, char type) {
 		new_table->table[i] = NULL;
 	}
 
+	new_table->current_size = 0;
 	new_table->max_size = size;
 	new_table->type = type;
 	//asign the function pointers
 	new_table->add = add_key;
 	new_table->get = get;
 	new_table->print = print_hash_table;
-	new_table->delete = delete;
+	new_table->remove = remove_hash_entry;
+	new_table->in = in_hash_table;
+	new_table->keys = hash_table_keys;
 	return new_table;
 }
 
 /*djb2 --> http://www.cse.yorku.ca/~oz/hash.html tested to be a very decent and simple hash function*/
-unsigned hash(char *key, int size)
+unsigned hash(char *key, int hash_table_size)
 {
 	unsigned long hash = 5381;
 	int c;
@@ -187,12 +219,12 @@ unsigned hash(char *key, int size)
 	while (c = *key++) {
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 	}
-	return ((unsigned)hash % size);
+	return ((unsigned)hash % hash_table_size);
 }
 
 /*Get a value corresponding to a key from the hashtable*/
 void *get(HashTable *self, char *key) {
-	HashEntry *result = in(self, key);
+	HashEntry *result = get_entry_at_key(self, key);
 	if (result == NULL) {
 		printf("Keyerror. Key '%s' not in hashtable\n", key);
 		exit(1);
@@ -200,8 +232,16 @@ void *get(HashTable *self, char *key) {
 	return result->value;
 }
 
-HashEntry *in(HashTable *self, char *key) {
-	struct HashEntry *entry_pointer;
+/*Check if a key is in a hashtable or not*/
+int in_hash_table(HashTable *self, char *key) {
+	if (get_entry_at_key(self, key) == NULL) {
+		return False;
+	}
+	return True;
+}
+
+HashEntry *get_entry_at_key(HashTable *self, char *key) {
+	HashEntry *entry_pointer;
 
 	//Look for an entry as long as there are more entries, in case of collisions
 	for (entry_pointer = self->table[hash(key, self->max_size)]; entry_pointer != NULL; entry_pointer = entry_pointer->next) {
@@ -215,14 +255,15 @@ HashEntry *in(HashTable *self, char *key) {
 }
 
 /*Add a key to the hashtable or replace the old values*/
-HashEntry *add_key(HashTable *self, char *key, void *value) {
+void add_key(HashTable *self, char *key, void *value) {
 	HashEntry *entry_pointer;
 	unsigned hash_value;
 
-	//no key found with name of key
-	if ((entry_pointer = in(self, key)) == NULL) {
+	//no key found with name of key --> add new value
+	if ((entry_pointer = get_entry_at_key(self, key)) == NULL) {
 		self->current_size++;
-		entry_pointer = (HashEntry *)malloc(sizeof(*entry_pointer));
+
+		entry_pointer = malloc(sizeof(*entry_pointer));
 		//check if there is a problem allocating memory 
 		if (entry_pointer == NULL || ((entry_pointer->key = _strdup(key)) == NULL)) {
 			printf("Cannot allocate memory for the new Entry\n");
@@ -234,6 +275,7 @@ HashEntry *add_key(HashTable *self, char *key, void *value) {
 		entry_pointer->next = self->table[hash_value];
 		self->table[hash_value] = entry_pointer;
 	}
+	// replace old value
 	else {
 		//free the memory for a new value
 		free(entry_pointer->value);
@@ -246,16 +288,15 @@ HashEntry *add_key(HashTable *self, char *key, void *value) {
 	}
 
 	// when the dictionary becomes to big collision becomes more likely, so increase the size
-	if (self->current_size > (int)(self->max_size * 0.8)) {
-		increase_table_size(self);
+	if (self->current_size > (int)(self->max_size * MAX_HASH_TABLE_RACTION_FILL)) {
+		change_hash_table_size(self, self->max_size * 2);
 	}
-	return entry_pointer;
 }
 
-void increase_table_size(HashTable *hash_table) {
+void change_hash_table_size(HashTable *hash_table, int new_max_size) {
 	int orig_size = hash_table->max_size;
 	HashEntry **orig_table = hash_table->table;
-	hash_table->max_size *= 2;
+	hash_table->max_size = new_max_size;
 	hash_table->current_size = 0;
 
 	// reallocate the table
@@ -280,37 +321,59 @@ void increase_table_size(HashTable *hash_table) {
 }
 
 /* Delete a key and value from the hashtable. Return 0 on succes and 1 on failure */
-int delete(HashTable *self, char *key) {
+void remove_hash_entry(HashTable *self, char *key) {
 	HashEntry *ep1, *ep2;
-	self->current_size--;
 
 	/* create 2 pointers, 1 to the current and one to the previous element */
 	for (ep1 = ep2 = self->table[hash(key, self->max_size)]; ep1 != NULL; ep2 = ep1, ep1 = ep1->next) {
+		// when an actual match is found 
 		if (strcmp(key, ep1->key) == 0) {
-
-			/* when the key is at the first level  */
+			self->current_size--;
+			// when making a new hash entry
 			if (ep1 == ep2) {
 				self->table[hash(key, self->max_size)] = ep1->next;
 			}
+			// when collision occurs
 			else {
 				ep2->next = ep1->next;
+			}
+			// when the dictionary becomes to big collision becomes more likely, so increase the size
+			if (self->current_size < (int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
+				change_hash_table_size(self, self->max_size / 2);
 			}
 
 			/*  Free memory  */
 			free_entry(ep1);
-			return 0;
+			return;
 		}
 	}
 	/* No key found */
-	return 1;
+	printf("Keyerror. Key '%s' not in hashtable\n", key);
+	exit(1);
 }
 
 void free_entry(HashEntry *e) {
-	free(e->value);
 	free(e->key);
 	free(e);
 }
 
+char **hash_table_keys(HashTable *self) {
+	char **keys;
+	keys = malloc(sizeof(*keys) * (self->current_size + 1));
+	int values_index = 0;
+	for (int index = 0; index < self->max_size; index++) {
+		HashEntry *entry = self->table[index];
+		while (entry != NULL) {
+			keys[values_index] = entry->value;
+			values_index++;
+			entry = entry->next;
+		}
+	}
+	keys[values_index] = NULL;
+	return keys;
+}
+
+/*print a simple version of the hashtable showing keys and values*/
 void print_hash_table(HashTable *self) {
 	printf("{");
 	int printed_first = False;
@@ -364,6 +427,231 @@ void print_hash_entry(HashEntry *e, int index, char type) {
 	}
 }
 
+// SET FUNCTIONS
+
+char **set_values(Set *self);
+void add_set_entry(Set *self, char *value);
+int value_in_set(Set *self, char *value);
+void remove_set_entry(Set *self, char *value);
+void change_set_size(Set *set, int new_max_size);
+void print_set(Set *self);
+void print_full_set(Set *self);
+void print_set_entry(SetEntry *e, int index);
+
+Set *new_set(int size) {
+	int i;
+	Set *new_set;
+
+	//make sure the size is bigger then 0
+	if (size < 1) {
+		printf("Cannot instantiate set smaller then 1.");
+		exit(1);
+	}
+
+	//allocate the set
+	new_set = malloc(sizeof(*new_set));
+	if (new_set == NULL) {
+		printf("Cannot allocate memory for the new Set\n");
+		exit(1);
+	}
+	// Allocate pointers to the head nodes.
+	new_set->table = (SetEntry **)malloc(sizeof(SetEntry *) * size);
+	if (new_set->table == NULL) {
+		printf("Cannot allocate memory for the new Set table\n");
+		exit(1);
+	}
+	for (i = 0; i < size; i++) {
+		new_set->table[i] = NULL;
+	}
+
+	new_set->max_size = size;
+	new_set->current_size = 0;
+	new_set->add = add_set_entry;
+	new_set->in = value_in_set;
+	new_set->print = print_set;
+	new_set->remove = remove_set_entry;
+	new_set->values = set_values;
+	return new_set;
+}
+
+char **set_values(Set *self) {
+	char **values;
+	values = malloc(sizeof(*values) * (self->current_size + 1));
+	int values_index = 0;
+	for (int index = 0; index < self->max_size; index++) {
+		SetEntry *entry = self->table[index];
+		while (entry != NULL) {
+			values[values_index] = entry->value;
+			values_index++;
+			entry = entry->next;
+		}
+	}
+	values[values_index] = NULL;
+	return values;
+}
+
+void add_set_entry(Set *self, char *value) {
+	SetEntry *new_entry;
+	unsigned hash_value;
+
+	// if value not in set
+	if (value_in_set(self, value) == False) {
+
+		self->current_size++;
+
+		new_entry = (SetEntry*)malloc(sizeof(SetEntry));
+		//check if there is a problem allocating memory 
+		if (new_entry == NULL) {
+			printf("Cannot allocate memory for the new Entry\n");
+			exit(1);
+		}
+		new_entry->value = _strdup(value);
+		if(new_entry->value == NULL){
+			printf("Cannot allocate memory for the new Entry\n");
+			exit(1);
+		}
+
+		//assign the current entry to the next and the new one to the current
+		hash_value = hash(value, self->max_size);
+		new_entry->next = self->table[hash_value];
+		self->table[hash_value] = new_entry;
+	}
+	// just exit
+	else {
+		return;
+	}
+
+	// when the dictionary becomes to big collision becomes more likely, so increase the size
+	if (self->current_size > (int)(self->max_size * MAX_HASH_TABLE_RACTION_FILL)) {
+		change_set_size(self, self->max_size * 2);
+	}
+
+}
+
+void remove_set_entry(Set *self, char *value) {
+	SetEntry *ep1, *ep2;
+
+	/* create 2 pointers, 1 to the current and one to the previous element */
+	for (ep1 = ep2 = self->table[hash(value, self->max_size)]; ep1 != NULL; ep2 = ep1, ep1 = ep1->next) {
+		// when an actual match is found 
+		if (strcmp(value, ep1->value) == 0) {
+			self->current_size--;
+
+			// when valur matches the first value of the row
+			if (ep1 == ep2) {
+				self->table[hash(value, self->max_size)] = ep1->next;
+			}
+			// other cases
+			else {
+				ep2->next = ep1->next;
+			}
+			// when the dictionary becomes to big collision becomes more likely, so increase the size
+			if (self->current_size < (int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
+				change_set_size(self, self->max_size / 2);
+			}
+
+			/*  Free memory  */
+			free(ep1);
+			return;
+		}
+	}
+	/* No key found */
+	printf("KeyError. Key '%s' not in set\n", value);
+	exit(1);
+}
+
+/*Check if a value is in a set 0 if not 1 if in.*/
+int value_in_set(Set *self, char *value) {
+	SetEntry *entry_pointer;
+	//Look for an entry as long as there are more entries, in case of collisions
+	for (entry_pointer = self->table[hash(value, self->max_size)]; entry_pointer != NULL; entry_pointer = entry_pointer->next) {
+		//check if the name of the pointer is that of the key
+		if (strcmp(value, entry_pointer->value) == 0) {
+			return True;
+		}
+	}
+	return False;
+}
+
+void change_set_size(Set *set, int new_max_size) {
+	int orig_size = set->max_size;
+	SetEntry **orig_table = set->table;
+	set->max_size = new_max_size;
+	set->current_size = 0;
+
+	set->table = malloc(sizeof(SetEntry *) * set->max_size);
+	if (set->table == NULL) {
+		printf("Cannot allocate memory for new hash table\n");
+		exit(1);
+	}
+
+	for (int index = 0; index < set->max_size; index++) {
+		set->table[index] = NULL;
+	}
+
+	// copy values
+	for (int index = 0; index < orig_size; index++) {
+		SetEntry *entry = orig_table[index];
+		while (entry != NULL) {
+			set->add(set, entry->value);
+			entry = entry->next;
+		}
+	}
+	free(orig_table);
+}
+
+/*print a simple representation of a set with all the values in any order*/
+void print_set(Set *self) {
+	printf("{");
+	int printed_first = False;
+	for (int i = 0; i < self->max_size; i++) {
+		SetEntry *entry_pointer = self->table[i];
+		if (entry_pointer != NULL) {
+			do {
+				if (printed_first != False) {
+					printf(", ");
+				}
+				else {
+					printed_first = True;
+				}
+				printf("%s", entry_pointer->value);
+			} while ((entry_pointer = entry_pointer->next) != NULL);
+		}
+	}
+	printf("}\n");
+}
+
+void print_full_set(Set *self) {
+	int i;
+
+	printf("Set of size %d:{\n", self->max_size);
+	for (i = 0; i < self->max_size; i++) {
+		SetEntry *entry_pointer = self->table[i];
+		if (entry_pointer != NULL) {
+			print_set_entry(entry_pointer, i);
+		}
+	}
+	printf("}\n");
+}
+
+/*Recursive function for printing entries of the hashtable*/
+void print_set_entry(SetEntry *e, int index) {
+	//if the index is bigger it is a genuine index. Else it is an indicator that is a repeat.
+	if (index >= 0) {
+		printf("\tEntry %d = %s", index, e->value);
+	}
+	else {
+		printf(", %s", e->value);
+	}
+	
+	if (e->next != NULL) {
+		print_set_entry(e->next, -1);
+	}
+	else {
+		printf("\n");
+	}
+}
+
 // TESTING FUNCTIONS
 
 int test_linked_list() {
@@ -409,9 +697,52 @@ int test_hash_table() {
 	print_full_hash_table(test_table);
 
 	printf("%s\n", (char *)test_table->get(test_table, "key1"));
-	test_table->delete(test_table, "key1");
-	test_table->print(test_table);
+	test_table->remove(test_table, "key1");
+	test_table->remove(test_table, "key3");
+	test_table->remove(test_table, "key4");
+	print_full_hash_table(test_table);
+
+	test_table->remove(test_table, "key_number_2");
+	print_full_hash_table(test_table);
 
 	printf("Hashtable tests finished succesfully\n\n");
+	return 0;
+}
+
+int test_set() {
+	printf("Start Set tests:\n");
+	char** values;
+	char *line;
+	Set *test_set = new_set(2);
+	test_set->print(test_set);
+	print_full_set(test_set);
+
+	test_set->add(test_set, "test1");
+	test_set->print(test_set);
+	print_full_set(test_set);
+
+	test_set->add(test_set, "test1");
+	test_set->add(test_set, "test2");
+	test_set->add(test_set, "test_2");
+	test_set->add(test_set, "test_3");
+	test_set->add(test_set, "test_4");
+
+	test_set->print(test_set);
+	print_full_set(test_set);
+
+	values = test_set->values(test_set);
+	while ((line = *values++) != NULL) {
+		printf("%s, ", line);
+	}
+	printf("\n");
+
+	test_set->remove(test_set, "test1");
+	test_set->remove(test_set, "test2");
+	test_set->remove(test_set, "test_4");
+	test_set->remove(test_set, "test_3");
+	test_set->print(test_set);
+	print_full_set(test_set);
+
+	printf("Set tests finished succesfully\n\n");
 	return 0;
 }

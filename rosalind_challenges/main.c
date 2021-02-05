@@ -8,6 +8,7 @@
 int test(char *argv[]) {
 	test_hash_table();
 	test_linked_list();
+	test_set();
 	return 0;
 }
 
