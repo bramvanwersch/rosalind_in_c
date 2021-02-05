@@ -8,12 +8,15 @@
 
 #define ERROR_BUFFER_SIZE 100
 #define MAX_HASH_TABLE_RACTION_FILL 0.8
-#define MIN_HASH_TABLE_FRACTION_FILL 0.3 // this value should be chosen in sutch a way that shrinking does not cause subsequent growing of the table
+// this value should be chosen in sutch a way that shrinking does not cause
+// subsequent growing of the table
+#define MIN_HASH_TABLE_FRACTION_FILL 0.3 
 
 // GENERAL USE FUNCTIONS
 
 void print_type(char type, void *value);
 void raise_memory_error(char *message);
+void raise_value_error(char *message);
 
 void print_type(char type, void *value) {
 	switch (type) {
@@ -40,21 +43,39 @@ void print_type(char type, void *value) {
 
 /*Signify the user there is not enough memory and exit*/
 void raise_memory_error(char *message) {
-	printf("MemoryError: Cannot allocate enought memory. %s", message);
+	printf("MemoryError: Cannot allocate enought memory. %s\n", message);
 	exit(1);
 }
 
-//LINKED LIST FUNCTIONS
+void raise_value_error(char *message) {
+	printf("ValueError: Invalid value. %s\n", message);
+	exit(2);
+}
 
+
+/*
+---------------------
+LINKED LIST FUNCTIONS
+---------------------
+Functions for creation and management of a LinkedList data structure. 
+*/
+
+LinkedEntry *new_linked_entry();
 void append_entry(LinkedList *self, void *value);
-void **to_array(LinkedList *self, size_t from, size_t until);
+void **to_array(LinkedList *self, int from, int until);
+void copy_linked_list_pointers(LinkedList *self, void **out_array, int from,
+	int until);
 void print_linked_list(LinkedList *self);
 void delete_linked_list(LinkedList *self);
+
 
 /*
 Create a new LinkedList
 
-type (char): type used for certain type dependant operations. Type checking will never occur
+type (char): type used for certain type dependant operations. Available 
+	options are c=char, s=string, d=digit, f=double and p=pointer
+
+Returns (LinkedList pointer): pointer to the newly innitialised LinkedList 
 */
 LinkedList *new_linked_list(char type) {
 	LinkedList *new_list;
@@ -62,11 +83,7 @@ LinkedList *new_linked_list(char type) {
 	if (new_list == NULL) {
 		raise_memory_error("LinkedList creation failed.");
 	}
-	LinkedEntry *root_entry;
-	root_entry = (LinkedEntry *)malloc(sizeof(*root_entry));
-	if (root_entry == NULL) {
-		raise_memory_error("LinkedList creation failed.");
-	}
+	LinkedEntry *root_entry = new_linked_entry();
 
 	root_entry->value = NULL;
 	root_entry->next = NULL;
@@ -85,8 +102,32 @@ LinkedList *new_linked_list(char type) {
 	return new_list;
 }
 
+
+/*
+Create a LinkedEntry. These are entries of a linked list.
+
+Returns (LinkedEntry pointer): pointer to the newly innitialised entry
+*/
+LinkedEntry *new_linked_entry() {
+	LinkedEntry *new_entry;
+	new_entry = (LinkedEntry *)malloc(sizeof(*new_entry));
+	if (new_entry == NULL) {
+		raise_memory_error("LinkedList creation failed.");
+	}
+	return new_entry;
+}
+
+
+/*
+Add an a new value to the end of the LinkedList
+
+self (LinkedList pointer): the LinkedList to append the value to.
+value (void pointer): value of any type that is appended. All values of a 
+	LinkedList should have the same type, otherwise undefined behaviour can
+	occur.
+*/
 void append_entry(LinkedList *self, void *value) {
-	LinkedEntry* new_entry = (LinkedEntry *)malloc(sizeof(LinkedEntry));
+	LinkedEntry* new_entry = new_linked_entry();
 	self->end->value = value;
 	self->end->next = new_entry;
 	new_entry->next = NULL;
@@ -95,21 +136,48 @@ void append_entry(LinkedList *self, void *value) {
 	self->size++;
 }
 
-void **to_array(LinkedList *self, size_t from, size_t until) {
-	if (until <= from) {
-		printf("Error: From (%d) must be smaller then until (%d).\n", from , until);
-		exit(1);
+
+/*
+Convert a LinkedList into a list of void pointers
+
+self (LinkedList pointer): the LinkedList to extract the array from
+from (int): positive integer
+until (int): positive integer
+
+Returns (void pointer pointer): a slice of the input LinkedList
+*/
+void **to_array(LinkedList *self, int from, int until) {
+	if (until < 0 || from < 0 || until <= from) {
+		raise_value_error("From has to be bigger or equal to until");
 	}
-	from = MAX(0, from);
+
+	// make sure that not more then max of the list is selected
 	until = MIN(self->size, until);
-	void **out_array = malloc(sizeof(void *) * ((until - from) + 1));
+
+	void **out_array;
+	out_array = malloc(sizeof(*out_array) * ((until - from) + 1));
 	if (out_array == NULL) {
-		printf("Error. Could not allocate memory for array.\n");
-		exit(1);
+		raise_memory_error("Cannot allocate memory for LinkedList.");
 	}
+
+	copy_linked_list_pointers(self, out_array, from, until);
+	return out_array;
+}
+
+
+/*
+Copy pointers from the LinkedList into the out_array
+
+self (LinkedList pointer): the LinkedList to retrieve the pointers from.
+out_array (void pointer pointer): the list to put the LinkedList values into.
+from (int): valid positive integer
+until (int): valid positive integer
+*/
+void copy_linked_list_pointers(LinkedList *self, void **out_array, int from,
+	int until) {
 	LinkedEntry *entry = self->root;
-	size_t index = 0;
-	size_t out_index = 0;
+	int index = 0;
+	int out_index = 0;
 	while (entry->next != NULL) {
 		if (index < from) {
 		}
@@ -123,10 +191,17 @@ void **to_array(LinkedList *self, size_t from, size_t until) {
 		index++;
 	}
 	out_array[out_index] = NULL;
-
-	return out_array;
 }
 
+
+/*
+Delete a LinkedList instance by freeing all entrys and the LinkedList itself
+
+NOTE: values are not freed because they are not guaranteed to be malloced and 
+	the user might still need them.
+
+self (LinkedList pointer): the LinkedList to delete.
+*/
 void delete_linked_list(LinkedList *self) {
 	LinkedEntry *entry = self->root;
 	LinkedEntry *old_entry;
@@ -139,8 +214,13 @@ void delete_linked_list(LinkedList *self) {
 	self = NULL;
 }
 
+
+/*
+Fancy print of a LinkedList in a python syntax style
+
+self (LinkedList pointer): the LinkedList to print.
+*/
 void print_linked_list(LinkedList *self) {
-	// couple of possible types s = string, d = int, f = double, p = pointers --> works for any value.
 	LinkedEntry *entry = self->root;
 	printf("[");
 	while (entry->next != NULL) {
@@ -159,7 +239,14 @@ void print_linked_list(LinkedList *self) {
 	printf("]\n");
 }
 
-// HASHTABLE FUNCTIONS
+
+/* 
+-------------------
+HASHTABLE FUNCTIONS 
+-------------------
+
+Functions for instantiation maintenance and manipulation of a HashTable
+*/
 unsigned hash(char *key, int size);
 void *get(HashTable *table, char *key);
 int in_hash_table(HashTable *self, char *key);

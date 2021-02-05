@@ -17,7 +17,7 @@ typedef struct LinkedList {
 	struct LinkedEntry *root;
 	struct LinkedEntry *end;
 	void (*append)(struct LinkedList *self, void *value);
-	void **(*to_array)(struct LinkedList *self, size_t from, size_t until);
+	void **(*to_array)(struct LinkedList *self, int from, int until);
 	size_t size;
 	void (*print)(struct LinkedList *self);
 	void (*delete)(struct LinkedList *self);
