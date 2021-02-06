@@ -7,17 +7,37 @@
 #include "data_structures.h"
 
 #define ERROR_BUFFER_SIZE 100
-#define MAX_HASH_TABLE_RACTION_FILL 0.8
+
+// percentage a table is filled before the size is increased
+#define MAX_HASH_TABLE_FRACTION_FILL 0.8
 // this value should be chosen in sutch a way that shrinking does not cause
 // subsequent growing of the table
 #define MIN_HASH_TABLE_FRACTION_FILL 0.3 
 
-// GENERAL USE FUNCTIONS
+// start size of a hashTable when innitialising
+#define INNITIAL_TABLE_SIZE 2
+
+/*
+---------------------
+GENERAL USE FUNCTIONS
+---------------------
+Functions used by most datastructures in this file.
+*/
 
 void print_type(char type, void *value);
+unsigned hash(char *key, int size);
 void raise_memory_error(char *message);
 void raise_value_error(char *message);
 
+
+/*
+Print a value given a type of that value
+
+type (char): type used for printing. Available options are c=char, s=string, 
+	d=digit, f=double and p=pointer
+value (void pointer): value of any type that should match type. Otherwise 
+	undifined behaviour.
+*/
 void print_type(char type, void *value) {
 	switch (type) {
 	case ('s'):
@@ -41,12 +61,44 @@ void print_type(char type, void *value) {
 	}
 }
 
-/*Signify the user there is not enough memory and exit*/
+
+/*
+Hash function from --> http://www.cse.yorku.ca/~oz/hash.html tested to be a 
+very decent and simple hash function
+
+key (char pointer): character array to be hashed. Has to be null terminated.
+container_size (int): the size of the container the hash needs to map to.
+*/
+unsigned hash(char *key, int container_size)
+{
+	unsigned long hash = 5381;
+	int c;
+
+	while (c = *key++) {
+		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+	}
+	return ((unsigned)hash % container_size);
+}
+
+
+/*
+Signify the user there is not enough memory and exit
+
+message (char pointer): null terminated character array with an additional 
+	message.
+*/
 void raise_memory_error(char *message) {
 	printf("MemoryError: Cannot allocate enought memory. %s\n", message);
 	exit(1);
 }
 
+
+/*
+Signify the user there an input is invalid and exit
+
+message (char pointer): null terminated character array with an additional
+	message.
+*/
 void raise_value_error(char *message) {
 	printf("ValueError: Invalid value. %s\n", message);
 	exit(2);
@@ -148,7 +200,7 @@ Returns (void pointer pointer): a slice of the input LinkedList
 */
 void **to_array(LinkedList *self, int from, int until) {
 	if (until < 0 || from < 0 || until <= from) {
-		raise_value_error("From has to be bigger or equal to until");
+		raise_value_error("From has to be bigger or equal to until.");
 	}
 
 	// make sure that not more then max of the list is selected
@@ -247,49 +299,55 @@ HASHTABLE FUNCTIONS
 
 Functions for instantiation maintenance and manipulation of a HashTable
 */
-unsigned hash(char *key, int size);
-void *get(HashTable *table, char *key);
+
+// Available from header (public)
+HashTable *new_hash_table(char type);
+
+// private
+HashEntry **create_hash_table_table(int size);
+
+HashEntry *new_hash_entry();
+void delete_hash_entry(HashEntry *e);
+void raise_key_error(char *key);
+void *get_value(HashTable *table, char *key);
 int in_hash_table(HashTable *self, char *key);
-HashEntry *get_entry_at_key(HashTable *self, char *key);
-void add_key(HashTable *table, char *key, void *value);
+HashEntry *hash_entry_from_key(HashTable *self, char *key);
+void add_key_value_pair(HashTable *table, char *key, void *value, int sizeof_value);
 void change_hash_table_size(HashTable *table, int new_max_size);
 void remove_hash_entry(HashTable *self, char *key);
-void free_entry(HashEntry *e);
 char **hash_table_keys(HashTable *self);
 void print_hash_table(HashTable *self);
+void print_full_hash_table(HashTable *self);
 void print_hash_entry(HashEntry *e, int index, char type);
 
-/*Create a new hash table*/
-HashTable *new_hash_table(int size, char type) {
-	int i;
+
+/*
+Create a new hash table
+
+type (char): type used for certain type dependant operations. Available
+	options are c=char, s=string, d=digit, f=double and p=pointer
+
+Returns (HashTable pointer): a pointer to a HashTable
+*/
+HashTable *new_hash_table(char type) {
+
 	HashTable *new_table;
-
-	//make sure the table is bigger then 0
-	if (size < 1) {
-		printf("Cannot instantiate table smaller then 1.");
-		exit(1);
+	new_table = malloc(sizeof(*new_table));
+	if (new_table == NULL) {
+		raise_memory_error("Failed to allocate memory for the new HashTable\
+						   structure.");
 	}
 
-	//allocate the hash table with check
-	if ((new_table = malloc(sizeof(HashTable))) == NULL) {
-		printf("Cannot allocate memory for the new HashTable\n");
-		exit(1);
-	}
-	// Allocate pointers to the head nodes.
-	if ((new_table->table = malloc(sizeof(HashEntry *) * size)) == NULL) {
-		printf("Cannot allocate memory for the new HashTable table\n");
-		exit(1);
-	}
-	for (i = 0; i < size; i++) {
-		new_table->table[i] = NULL;
-	}
-
+	new_table->table = create_hash_table_table(INNITIAL_TABLE_SIZE);
+	
+	//values
 	new_table->current_size = 0;
-	new_table->max_size = size;
+	new_table->max_size = INNITIAL_TABLE_SIZE;
 	new_table->type = type;
-	//asign the function pointers
-	new_table->add = add_key;
-	new_table->get = get;
+
+	// functions
+	new_table->add = add_key_value_pair;
+	new_table->get = get_value;
 	new_table->print = print_hash_table;
 	new_table->remove = remove_hash_entry;
 	new_table->in = in_hash_table;
@@ -297,41 +355,124 @@ HashTable *new_hash_table(int size, char type) {
 	return new_table;
 }
 
-/*djb2 --> http://www.cse.yorku.ca/~oz/hash.html tested to be a very decent and simple hash function*/
-unsigned hash(char *key, int hash_table_size)
-{
-	unsigned long hash = 5381;
-	int c;
 
-	while (c = *key++) {
-		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+/*
+Create a array of NULLED HashEntry pointers for a given size
+
+size(int): the size of the array
+
+Returns(HashEntry pointer pointer): an array of pointers to NULLED hash entries
+*/
+HashEntry **create_hash_table_table(int size) {
+	HashEntry **new_table;
+	if (size <= 0) {
+		raise_value_error("Failed to create HashTable of the given size. Size \
+			has to be bigger than 0.");
 	}
-	return ((unsigned)hash % hash_table_size);
+	new_table = malloc(sizeof(*new_table) * size);
+	if (new_table == NULL) {
+		raise_memory_error("Failed to allocate memory for table of HashTable.");
+	}
+
+	for (int index = 0; index < size; index++) {
+		new_table[index] = NULL;
+	}
+	return new_table;
 }
 
-/*Get a value corresponding to a key from the hashtable*/
-void *get(HashTable *self, char *key) {
-	HashEntry *result = get_entry_at_key(self, key);
+
+/*
+Create a HashEntry and raise memory error when appropriate
+
+Returns (HashEntry pointer): a pointer to a HashEntry.
+*/
+HashEntry *new_hash_entry() {
+	HashEntry *entry_pointer;
+	entry_pointer = malloc(sizeof(*entry_pointer));
+	if (entry_pointer == NULL) {
+		raise_memory_error("Failed to locate memory for HashEntry.");
+	}
+	entry_pointer->next = NULL;
+	entry_pointer->key = NULL;
+	entry_pointer->value = NULL;
+	return entry_pointer;
+}
+
+
+/*
+Safely delete a HashEntry and all contained information
+
+entry (HashEntry pointer): the entry to delete.
+*/
+void delete_hash_entry(HashEntry *entry) {
+	free(entry->key);
+	free(entry->value);
+	free(entry);
+}
+
+
+/*
+Signify the user that there is no key with the given key name
+
+key (char pointer): null terminated character array that is the name of a key
+	not in the HashTable
+*/
+void raise_key_error(char *key) {
+	printf("Keyerror. Key '%s' not in HashTable\n", key);
+	exit(3);
+}
+
+
+/*
+Get a value corresponding to a key from the hashtable
+
+self (HashTable pointer): the HashTable retrieve the value from.
+key (char pointer): key that corresponds to value
+
+Returns (void pointer): value saved at the given key. 
+*/
+void *get_value(HashTable *self, char *key) {
+	HashEntry *result = hash_entry_from_key(self, key);
 	if (result == NULL) {
-		printf("Keyerror. Key '%s' not in hashtable\n", key);
-		exit(1);
+		raise_key_error(key);
 	}
 	return result->value;
 }
 
-/*Check if a key is in a hashtable or not*/
+
+/*
+Check if a key is in a hashtable or not. If you do not want key errors use this
+method to check for keys
+
+self (HashTable pointer): the HashTable to test for the key
+key (char pointer): key that corresponds to value
+
+Returns (int): 0 if key is not present 1 if it is present. (can use True or 
+	False to test as well).
+*/
 int in_hash_table(HashTable *self, char *key) {
-	if (get_entry_at_key(self, key) == NULL) {
+	if (hash_entry_from_key(self, key) == NULL) {
 		return False;
 	}
 	return True;
 }
 
-HashEntry *get_entry_at_key(HashTable *self, char *key) {
+
+/*
+Retrieve a HashEntry associated with a key return NULL if no sutch ket exists
+
+self (HashTable pointer): the HashTable to retrieve the HashEntry from.
+key (char pointer): key that corresponds to value
+
+Returns (HashEntry pointer || NULL): a HashEntry pointer if the ket is present
+	in self otherwise NULL.
+*/
+HashEntry *hash_entry_from_key(HashTable *self, char *key) {
 	HashEntry *entry_pointer;
 
-	//Look for an entry as long as there are more entries, in case of collisions
-	for (entry_pointer = self->table[hash(key, self->max_size)]; entry_pointer != NULL; entry_pointer = entry_pointer->next) {
+	//Look for an entry as long as there are more entries at a hash of a key
+	for (entry_pointer = self->table[hash(key, self->max_size)];
+		entry_pointer != NULL; entry_pointer = entry_pointer->next) {
 		//check if the name of the pointer is that of the key
 		if (strcmp(key, entry_pointer->key) == 0) {
 			return entry_pointer;
@@ -341,109 +482,135 @@ HashEntry *get_entry_at_key(HashTable *self, char *key) {
 	return NULL;
 }
 
-/*Add a key to the hashtable or replace the old values*/
-void add_key(HashTable *self, char *key, void *value) {
-	HashEntry *entry_pointer;
-	unsigned hash_value;
 
-	//no key found with name of key --> add new value
-	if ((entry_pointer = get_entry_at_key(self, key)) == NULL) {
+/*
+Add a key to the hashtable or replace the old value, with a copy of the 
+provided value. Meaning it is fine to delete the value after placing it in the
+HashTable.
+
+self (HashTable pointer): the HashTable to place the value into.
+key (char pointer): key to place the value at.
+value (void pointer): value to be placed at the key
+sizeof_value (int): the size of the value in order to copy the value.
+*/
+void add_key_value_pair(HashTable *self, char *key, void *value,
+	int sizeof_value) {
+	HashEntry *new_entry;
+	new_entry = hash_entry_from_key(self, key);
+
+	//no key found with name of key, add a new value
+	if (new_entry == NULL) {
 		self->current_size++;
 
-		entry_pointer = malloc(sizeof(*entry_pointer));
-		//check if there is a problem allocating memory 
-		if (entry_pointer == NULL || ((entry_pointer->key = _strdup(key)) == NULL)) {
-			printf("Cannot allocate memory for the new Entry\n");
-			exit(1);
+		new_entry = new_hash_entry();
+		new_entry->key = _strdup(key);
+		if (new_entry->key == NULL) {
+			raise_memory_error("Failed to duplicate key.");
 		}
 
 		//assign the current entry to the next and the new one to the current
-		hash_value = hash(key, self->max_size);
-		entry_pointer->next = self->table[hash_value];
-		self->table[hash_value] = entry_pointer;
+		unsigned hash_value = hash(key, self->max_size);
+		new_entry->next = self->table[hash_value];
+		self->table[hash_value] = new_entry;
 	}
-	// replace old value
 	else {
 		//free the memory for a new value
-		free(entry_pointer->value);
-	}
-	//place the value in the table and check for storage trouble
-	if ((entry_pointer->value = _strdup(value)) == NULL) {
-		printf("Not enough memory to place new entry in table\n");
-		exit(1);
-
+		free(new_entry->value);
 	}
 
-	// when the dictionary becomes to big collision becomes more likely, so increase the size
-	if (self->current_size > (int)(self->max_size * MAX_HASH_TABLE_RACTION_FILL)) {
+	// copy the value into a HashEntry in order to be able to safely free it
+	new_entry->value = malloc(sizeof_value);
+	memcpy(new_entry->value, value, sizeof_value);
+	if (new_entry->value == NULL) {
+		raise_memory_error("Failed to copy value.");
+	}
+
+	// when the dictionary becomes to full, increase size
+	if (self->current_size > 
+		(int)(self->max_size * MAX_HASH_TABLE_FRACTION_FILL)) {
 		change_hash_table_size(self, self->max_size * 2);
 	}
 }
 
+
+/*
+Change the size of a HashTable's table
+
+hash_table (HashTable pointer): a pointer to the HashTable that has to be 
+	increased.
+new_max_size (int): new size for the table. Has to be bigger than 0.
+*/
 void change_hash_table_size(HashTable *hash_table, int new_max_size) {
 	int orig_size = hash_table->max_size;
 	HashEntry **orig_table = hash_table->table;
 	hash_table->max_size = new_max_size;
 	hash_table->current_size = 0;
 
-	// reallocate the table
-	if ((hash_table->table = malloc(sizeof(HashEntry *) * hash_table->max_size)) == NULL) {
-		printf("Cannot allocate memory for new hash table\n");
-		exit(1);
-	}
+	hash_table->table = create_hash_table_table(hash_table->max_size);
 
-	for (int index = 0; index < hash_table->max_size; index++) {
-		hash_table->table[index] = NULL;
-	}
-
-	// copy keys
+	// repoint the entries into the new table
 	for (int index = 0; index < orig_size; index++) {
 		HashEntry *entry = orig_table[index];
+		HashEntry *orig_entry = NULL;
 		while (entry != NULL) {
-			hash_table->add(hash_table, entry->key, entry->value);
+			unsigned hash_val = hash(entry->key, hash_table->max_size);
+			orig_entry = entry;
 			entry = entry->next;
+
+			orig_entry->next = hash_table->table[hash_val];
+			hash_table->table[hash_val] = orig_entry;
+			hash_table->current_size++;
 		}
 	}
 	free(orig_table);
 }
 
-/* Delete a key and value from the hashtable. Return 0 on succes and 1 on failure */
+
+/*
+Delete a key and value pair from the HashTable.
+
+self (HashTable pointer): the HashTable to remove the value from.
+key (char pointer): key to delete the value from.
+*/
 void remove_hash_entry(HashTable *self, char *key) {
-	HashEntry *ep1, *ep2;
+	HashEntry *current_entry, *previous_entry;
 
 	/* create 2 pointers, 1 to the current and one to the previous element */
-	for (ep1 = ep2 = self->table[hash(key, self->max_size)]; ep1 != NULL; ep2 = ep1, ep1 = ep1->next) {
+	for (current_entry = previous_entry = self->table[hash(key, self->max_size)];
+		current_entry != NULL; current_entry = current_entry->next) {
 		// when an actual match is found 
-		if (strcmp(key, ep1->key) == 0) {
+		if (strcmp(key, current_entry->key) == 0) {
 			self->current_size--;
-			// when making a new hash entry
-			if (ep1 == ep2) {
-				self->table[hash(key, self->max_size)] = ep1->next;
+			if (current_entry == previous_entry) {
+				self->table[hash(key, self->max_size)] = current_entry->next;
 			}
-			// when collision occurs
 			else {
-				ep2->next = ep1->next;
+				previous_entry->next = current_entry->next;
 			}
-			// when the dictionary becomes to big collision becomes more likely, so increase the size
-			if (self->current_size < (int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
+			//decrease the dict if the table is too empty
+			if (self->current_size <
+				(int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
 				change_hash_table_size(self, self->max_size / 2);
 			}
 
-			/*  Free memory  */
-			free_entry(ep1);
+			delete_hash_entry(current_entry);
 			return;
 		}
+		else {
+			previous_entry = current_entry;
+		}
 	}
-	/* No key found */
-	printf("Keyerror. Key '%s' not in hashtable\n", key);
-	exit(1);
+	raise_key_error(key);
 }
 
-void free_entry(HashEntry *e) {
-	free(e->key);
-	free(e);
-}
 
+/*
+Get an array of all keys in a HashTable. The order is not guaranteed
+
+self (HashTable pointer): pointer to the hashtable to retrieve the keys from
+
+Returns (char pointer pointer): return a null terminated array of strings.
+*/
 char **hash_table_keys(HashTable *self) {
 	char **keys;
 	keys = malloc(sizeof(*keys) * (self->current_size + 1));
@@ -460,7 +627,14 @@ char **hash_table_keys(HashTable *self) {
 	return keys;
 }
 
-/*print a simple version of the hashtable showing keys and values*/
+
+/*
+Print a A pythonlike representation of a HashTable
+
+self (HashTable pointer): pointer a HashTable to print.
+NOTE: printing may fail if the type given to the HashTable and the actual type
+	of the values do not match.
+*/
 void print_hash_table(HashTable *self) {
 	printf("{");
 	int printed_first = False;
@@ -482,37 +656,53 @@ void print_hash_table(HashTable *self) {
 	printf("}\n");
 }
 
-/*Function for printing the hashtable with additional information displaying the table and collisions*/
-void print_full_hash_table(HashTable *self) {
+
+/*
+Function for printing a HashTable with all relevant information (size,
+collision)
+
+self (HashTable pointer): pointer a HashTable to print.
+*/
+void print_full_hash_table(HashTable *hash_table) {
 	int i;
 
-	printf("Hastable of size %d:{\n", self->max_size);
-	for (i = 0; i < self->max_size; i++) {
-		HashEntry *entry_pointer = self->table[i];
+	printf("Hastable of size %d:{\n", hash_table->max_size);
+	for (i = 0; i < hash_table->max_size; i++) {
+		HashEntry *entry_pointer = hash_table->table[i];
 		if (entry_pointer != NULL) {
-			print_hash_entry(entry_pointer, i, self->type);
+			print_hash_entry(entry_pointer, i, hash_table->type);
 		}
 	}
 	printf("}\n");
 }
 
-/*Recursive function for printing entries of the hashtable*/
-void print_hash_entry(HashEntry *e, int index, char type) {
-	//if the index is bigger it is a genuine index. Else it is an indicator that is a repeat.
-	if (index >= 0) {
-		printf("\tEntry %d = %s: ", index, e->key);
+
+/*
+Recursively print all entries at a given table row.
+
+entry (HashEntry pointer): pointer to a HashEntry acting as the row.
+row_index (int): genuine index if this is the first call of the recursive stack
+	-1 otherwise.
+type (char): a character that is the type of the HashTable the entry originates
+	from.
+*/
+void print_hash_entry(HashEntry *entry, int row_index, char type) {
+	if (row_index >= 0) {
+		printf("\tEntry %d = %s: ", row_index, entry->key);
 	}
 	else {
-		printf(", %s: ", e->key);
+		printf(", %s: ", entry->key);
 	}
-	print_type(type, e->value);
-	if (e->next != NULL) {
-		print_hash_entry(e->next, -1, type);
+	print_type(type, entry->value);
+	if (entry->next != NULL) {
+		print_hash_entry(entry->next, -1, type);
 	}
 	else {
 		printf("\n");
 	}
 }
+
+
 
 // SET FUNCTIONS
 
@@ -609,7 +799,7 @@ void add_set_entry(Set *self, char *value) {
 	}
 
 	// when the dictionary becomes to big collision becomes more likely, so increase the size
-	if (self->current_size > (int)(self->max_size * MAX_HASH_TABLE_RACTION_FILL)) {
+	if (self->current_size > (int)(self->max_size * MAX_HASH_TABLE_FRACTION_FILL)) {
 		change_set_size(self, self->max_size * 2);
 	}
 
@@ -769,16 +959,18 @@ int test_linked_list() {
 
 int test_hash_table() {
 	printf("Start HashTable tests:\n");
-	HashTable *test_table = new_hash_table(4, 's');
+	int sizeof_str = sizeof(char *);
+	HashTable *test_table = new_hash_table('s');
 	test_table->print(test_table);
-	test_table->add(test_table, "key1", "value1");
-	test_table->add(test_table, "key1", "value2");
-	test_table->add(test_table, "key_number_2", "value2");
-	test_table->add(test_table, "key3", "value24");
+	print_full_hash_table(test_table);
+	test_table->add(test_table, "key1", "value1", sizeof_str);
+	test_table->add(test_table, "key1", "value2", sizeof_str);
+	test_table->add(test_table, "key_number_2", "value2", sizeof_str);
+	test_table->add(test_table, "key3", "value24", sizeof_str);
 
 	test_table->print(test_table);
 	print_full_hash_table(test_table);
-	test_table->add(test_table, "key4", "value23");
+	test_table->add(test_table, "key4", "value23", sizeof_str);
 
 	test_table->print(test_table);
 	print_full_hash_table(test_table);

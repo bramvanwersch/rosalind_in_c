@@ -18,7 +18,7 @@ typedef struct LinkedList {
 	struct LinkedEntry *end;
 	void (*append)(struct LinkedList *self, void *value);
 	void **(*to_array)(struct LinkedList *self, int from, int until);
-	size_t size;
+	int size;
 	void (*print)(struct LinkedList *self);
 	void (*delete)(struct LinkedList *self);
 }LinkedList;
@@ -31,7 +31,7 @@ int test_linked_list();
 typedef struct HashEntry {
 	struct HashEntry *next;
 	char *key;
-	char *value;
+	void *value;
 } HashEntry;
 
 typedef struct HashTable {
@@ -40,14 +40,15 @@ typedef struct HashTable {
 	char type;
 	HashEntry **table;
 	void *(*get)(struct HashTable *self, char *key);
-	void(*add)(struct HashTable *self, char *key, void *value);
+	void(*add)(struct HashTable *self, char *key, void *value,
+		int sizeof_value);
 	void(*remove)(struct HashTable *self, char *key);
 	void(*print)(struct HashTable *self);
 	int(*in)(struct HashTable *self, char *key);
 	char **(*keys)(struct HashTable *self);
 } HashTable;
 
-HashTable *new_hash_table(int size, char type);
+HashTable *new_hash_table(char type);
 int test_hash_table();
 
 

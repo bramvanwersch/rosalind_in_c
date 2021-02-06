@@ -150,92 +150,93 @@ HashTable *get_aa_table() {
 	if (amino_acid_table != NULL){
 		return amino_acid_table;
 	}
-	amino_acid_table = new_hash_table(81, 's'); // save amount of space, and because of the limited alphabet 81 works out better
-	amino_acid_table->add(amino_acid_table, "GCU", "A");
-	amino_acid_table->add(amino_acid_table, "GCC", "A");
-	amino_acid_table->add(amino_acid_table, "GCA", "A");
-	amino_acid_table->add(amino_acid_table, "GCG", "A");
+	amino_acid_table = new_hash_table('s');
+	int sizeof_str = sizeof(char *);
+	amino_acid_table->add(amino_acid_table, "GCU", "A", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GCC", "A", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GCA", "A", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GCG", "A", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "CGU", "R");
-	amino_acid_table->add(amino_acid_table, "CGC", "R");
-	amino_acid_table->add(amino_acid_table, "CGA", "R");
-	amino_acid_table->add(amino_acid_table, "CGG", "R");
-	amino_acid_table->add(amino_acid_table, "AGA", "R");
-	amino_acid_table->add(amino_acid_table, "AGG", "R");
+	amino_acid_table->add(amino_acid_table, "CGU", "R", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CGC", "R", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CGA", "R", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CGG", "R", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AGA", "R", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AGG", "R", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "AAU", "N");
-	amino_acid_table->add(amino_acid_table, "AAC", "N");
+	amino_acid_table->add(amino_acid_table, "AAU", "N", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AAC", "N", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "GAU", "D");
-	amino_acid_table->add(amino_acid_table, "GAC", "D");
+	amino_acid_table->add(amino_acid_table, "GAU", "D", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GAC", "D", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "UGU", "C");
-	amino_acid_table->add(amino_acid_table, "UGC", "C");
+	amino_acid_table->add(amino_acid_table, "UGU", "C", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UGC", "C", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "CAA", "Q");
-	amino_acid_table->add(amino_acid_table, "CAG", "Q");
+	amino_acid_table->add(amino_acid_table, "CAA", "Q", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CAG", "Q", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "GAA", "E");
-	amino_acid_table->add(amino_acid_table, "GAG", "E");
+	amino_acid_table->add(amino_acid_table, "GAA", "E", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GAG", "E", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "GGU", "G");
-	amino_acid_table->add(amino_acid_table, "GGC", "G");
-	amino_acid_table->add(amino_acid_table, "GGA", "G");
-	amino_acid_table->add(amino_acid_table, "GGG", "G");
+	amino_acid_table->add(amino_acid_table, "GGU", "G", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GGC", "G", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GGA", "G", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GGG", "G", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "CAU", "H");
-	amino_acid_table->add(amino_acid_table, "CAC", "H");
+	amino_acid_table->add(amino_acid_table, "CAU", "H", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CAC", "H", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "AUG", "M");
+	amino_acid_table->add(amino_acid_table, "AUG", "M", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "AUU", "I");
-	amino_acid_table->add(amino_acid_table, "AUC", "I");
-	amino_acid_table->add(amino_acid_table, "AUA", "I");
+	amino_acid_table->add(amino_acid_table, "AUU", "I", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AUC", "I", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AUA", "I", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "CUU", "L");
-	amino_acid_table->add(amino_acid_table, "CUC", "L");
-	amino_acid_table->add(amino_acid_table, "CUA", "L");
-	amino_acid_table->add(amino_acid_table, "CUG", "L");
-	amino_acid_table->add(amino_acid_table, "UUA", "L");
-	amino_acid_table->add(amino_acid_table, "UUG", "L");
+	amino_acid_table->add(amino_acid_table, "CUU", "L", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CUC", "L", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CUA", "L", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CUG", "L", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UUA", "L", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UUG", "L", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "AAA", "K");
-	amino_acid_table->add(amino_acid_table, "AAG", "K");
+	amino_acid_table->add(amino_acid_table, "AAA", "K", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AAG", "K", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "UUU", "F");
-	amino_acid_table->add(amino_acid_table, "UUC", "F");
+	amino_acid_table->add(amino_acid_table, "UUU", "F", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UUC", "F", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "CCU", "P");
-	amino_acid_table->add(amino_acid_table, "CCC", "P");
-	amino_acid_table->add(amino_acid_table, "CCA", "P");
-	amino_acid_table->add(amino_acid_table, "CCG", "P");
+	amino_acid_table->add(amino_acid_table, "CCU", "P", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CCC", "P", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CCA", "P", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "CCG", "P", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "UCU", "S");
-	amino_acid_table->add(amino_acid_table, "UCC", "S");
-	amino_acid_table->add(amino_acid_table, "UCA", "S");
-	amino_acid_table->add(amino_acid_table, "UCG", "S");
-	amino_acid_table->add(amino_acid_table, "AGU", "S");
-	amino_acid_table->add(amino_acid_table, "AGC", "S");
+	amino_acid_table->add(amino_acid_table, "UCU", "S", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UCC", "S", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UCA", "S", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UCG", "S", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AGU", "S", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "AGC", "S", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "ACU", "T");
-	amino_acid_table->add(amino_acid_table, "ACC", "T");
-	amino_acid_table->add(amino_acid_table, "ACA", "T");
-	amino_acid_table->add(amino_acid_table, "ACG", "T");
+	amino_acid_table->add(amino_acid_table, "ACU", "T", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "ACC", "T", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "ACA", "T", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "ACG", "T", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "UGG", "W");
+	amino_acid_table->add(amino_acid_table, "UGG", "W", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "UAU", "Y");
-	amino_acid_table->add(amino_acid_table, "UAC", "Y");
+	amino_acid_table->add(amino_acid_table, "UAU", "Y", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UAC", "Y", sizeof_str);
 
-	amino_acid_table->add(amino_acid_table, "GUU", "V");
-	amino_acid_table->add(amino_acid_table, "GUC", "V");
-	amino_acid_table->add(amino_acid_table, "GUA", "V");
-	amino_acid_table->add(amino_acid_table, "GUG", "V");
+	amino_acid_table->add(amino_acid_table, "GUU", "V", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GUC", "V", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GUA", "V", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "GUG", "V", sizeof_str);
 
 	// the 3 stop codons
-	amino_acid_table->add(amino_acid_table, "UAA", "X");
-	amino_acid_table->add(amino_acid_table, "UGA", "X");
-	amino_acid_table->add(amino_acid_table, "UAG", "X");
+	amino_acid_table->add(amino_acid_table, "UAA", "X", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UGA", "X", sizeof_str);
+	amino_acid_table->add(amino_acid_table, "UAG", "X", sizeof_str);
 	return amino_acid_table;
 }
 

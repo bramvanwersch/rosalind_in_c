@@ -12,29 +12,30 @@ HashTable *get_aa_codon_numbers();
 long long mRNA_possibilities(char *protein);
 
 HashTable *get_aa_codon_numbers() {
-	HashTable *aa_codon_numbers = new_hash_table(81, 's');
-	aa_codon_numbers->add(aa_codon_numbers, "A", "4");
-	aa_codon_numbers->add(aa_codon_numbers, "R", "6");
-	aa_codon_numbers->add(aa_codon_numbers, "N", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "D", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "C", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "Q", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "E", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "G", "4");
-	aa_codon_numbers->add(aa_codon_numbers, "H", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "M", "1");
-	aa_codon_numbers->add(aa_codon_numbers, "I", "3");
-	aa_codon_numbers->add(aa_codon_numbers, "L", "6");
-	aa_codon_numbers->add(aa_codon_numbers, "K", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "F", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "P", "4");
-	aa_codon_numbers->add(aa_codon_numbers, "S", "6");
-	aa_codon_numbers->add(aa_codon_numbers, "T", "4");
-	aa_codon_numbers->add(aa_codon_numbers, "W", "1");
-	aa_codon_numbers->add(aa_codon_numbers, "Y", "2");
-	aa_codon_numbers->add(aa_codon_numbers, "V", "4");
+	HashTable *aa_codon_numbers = new_hash_table('s');
+	int sizeof_str = sizeof(char *);
+	aa_codon_numbers->add(aa_codon_numbers, "A", "4", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "R", "6", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "N", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "D", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "C", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "Q", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "E", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "G", "4", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "H", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "M", "1", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "I", "3", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "L", "6", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "K", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "F", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "P", "4", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "S", "6", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "T", "4", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "W", "1", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "Y", "2", sizeof_str);
+	aa_codon_numbers->add(aa_codon_numbers, "V", "4", sizeof_str);
 	// stop codon
-	aa_codon_numbers->add(aa_codon_numbers, "X", "3");
+	aa_codon_numbers->add(aa_codon_numbers, "X", "3", sizeof_str);
 	return aa_codon_numbers;
 }
 
