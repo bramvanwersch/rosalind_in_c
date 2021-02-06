@@ -75,7 +75,7 @@ LinkedList* read_lines(FILE *file_pointer) {
 			}
 
 			strcpy_s(line, buffer_index + 1, buffer);
-			all_lines->append(all_lines, line);
+			all_lines->append(all_lines, line, sizeof(char *));
 			buffer_index = 0;
 			if (ch == EOF) {
 				break;
@@ -106,7 +106,7 @@ LinkedList *get_linked_fasta_lines(FILE *input_file_pointer) {
 		char *line = (char *)entry->value;
 		if (line[0] == '>') {
 			if (value != NULL) {
-				fasta_lines->append(fasta_lines, value);
+				fasta_lines->append(fasta_lines, value, sizeof(char *));
 			}
 			value = NULL;
 			value_len = 0;
@@ -129,7 +129,7 @@ LinkedList *get_linked_fasta_lines(FILE *input_file_pointer) {
 		}
 		entry = entry->next;
 	}
-	fasta_lines->append(fasta_lines, value);
+	fasta_lines->append(fasta_lines, value, sizeof(char *));
 	return fasta_lines;
 }
 

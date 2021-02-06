@@ -16,7 +16,7 @@ typedef struct LinkedList {
 	char type;
 	struct LinkedEntry *root;
 	struct LinkedEntry *end;
-	void (*append)(struct LinkedList *self, void *value);
+	void (*append)(struct LinkedList *self, void *value, int sizeof_value);
 	void **(*to_array)(struct LinkedList *self, int from, int until);
 	int size;
 	void (*print)(struct LinkedList *self);

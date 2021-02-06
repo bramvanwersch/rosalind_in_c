@@ -112,13 +112,17 @@ LINKED LIST FUNCTIONS
 Functions for creation and management of a LinkedList data structure. 
 */
 
+// public
 LinkedEntry *new_linked_entry();
-void append_entry(LinkedList *self, void *value);
+
+// private
+void append_entry(LinkedList *self, void *value, int sizeof_value);
 void **to_array(LinkedList *self, int from, int until);
 void copy_linked_list_pointers(LinkedList *self, void **out_array, int from,
 	int until);
-void print_linked_list(LinkedList *self);
 void delete_linked_list(LinkedList *self);
+void delete_linked_entry(LinkedEntry *entry);
+void print_linked_list(LinkedList *self);
 
 
 /*
@@ -171,20 +175,30 @@ LinkedEntry *new_linked_entry() {
 
 
 /*
-Add an a new value to the end of the LinkedList
+Add an a new value to the end of the LinkedList. The value is coppied so it is
+safe to free or dereference it after.
 
 self (LinkedList pointer): the LinkedList to append the value to.
 value (void pointer): value of any type that is appended. All values of a 
 	LinkedList should have the same type, otherwise undefined behaviour can
 	occur.
 */
-void append_entry(LinkedList *self, void *value) {
+void append_entry(LinkedList *self, void *value, int sizeof_value) {
 	LinkedEntry* new_entry = new_linked_entry();
-	self->end->value = value;
+
+	//place value at the current end
+	self->end->value = malloc(sizeof_value);
+	memcpy(self->end->value, value, sizeof_value);
+	if (self->end->value == NULL) {
+		raise_memory_error("Failed to copy value.");
+	}
+	
+	// add a new empty entry at the end
 	self->end->next = new_entry;
 	new_entry->next = NULL;
 	new_entry->value = NULL;
 	self->end = new_entry;
+	
 	self->size++;
 }
 
@@ -260,12 +274,21 @@ void delete_linked_list(LinkedList *self) {
 	while (entry->next != NULL) {
 		old_entry = entry;
 		entry = entry->next;
-		free(old_entry);
+		delete_linked_entry(old_entry);
 	}
 	free(self);
-	self = NULL;
 }
 
+
+/*
+Safely delete a LinkedEntry
+
+entry (LinkedEntry pointer): pointer to the entry to delete.
+*/
+void delete_linked_entry(LinkedEntry *entry) {
+	free(entry->value);
+	free(entry);
+}
 
 /*
 Fancy print of a LinkedList in a python syntax style
@@ -933,21 +956,22 @@ void print_set_entry(SetEntry *e, int index) {
 
 int test_linked_list() {
 	printf("Start LinkedList tests:\n");
+	int sizeof_str = sizeof(char *);
 	LinkedList *test = new_linked_list('s');
 	test->print(test);
-	test->append(test, "test1");
+	test->append(test, "test1", sizeof_str);
 	test->print(test);
 	test->to_array(test, 0, test->size);
-	test->append(test, "test2");
-	test->append(test, "test3");
-	test->append(test, "test4");
+	test->append(test, "test2", sizeof_str);
+	test->append(test, "test3", sizeof_str);
+	test->append(test, "test4", sizeof_str);
 	test->print(test);
 
 	LinkedList *test2 = new_linked_list('d');
 	int i = 1;
 	int j = 5;
-	test2->append(test2, &i);
-	test2->append(test2, &j);
+	test2->append(test2, &i, sizeof(int));
+	test2->append(test2, &j, sizeof(int));
 	test2->print(test2);
 	test->to_array(test, 0, test->size);
 

@@ -245,7 +245,7 @@ LinkedList *find_motif_start_locations(char *search_string, char *motif) {
 		if (match == True) {
 			int *motif_location = (int *)malloc(sizeof(int));
 			*motif_location =  search_index + 1;
-			start_locations->append(start_locations, motif_location);
+			start_locations->append(start_locations, motif_location, sizeof(char *));
 		}
 	}
 	return start_locations;
@@ -339,7 +339,7 @@ LinkedList *get_spliced_indices(char *sequence, char *sub_sequence) {
 			if (sub_seq_char == seq_char) {
 				int *location = (int *) malloc(sizeof(int));
 				*location = seq_index + 1;
-				indices->append(indices, location);
+				indices->append(indices, location, sizeof(char *));
 				seq_index++;
 				break;
 			}
@@ -427,7 +427,7 @@ LinkedList *find_restriction_sites(char *sequence) {
 				int *r_palindrome = malloc(sizeof(int) * 2);
 				r_palindrome[0] = index + 1;
 				r_palindrome[1] = palindrome_range;
-				result->append(result, r_palindrome);
+				result->append(result, r_palindrome, sizeof(char *));
 			}
 		}
 	}
@@ -482,7 +482,7 @@ LinkedList *extract_open_reading_frames(char *sequence) {
 		if (current_orfs[reading_frame] == NULL) {
 			if (aa[0] == 'M') {
 				current_orfs[reading_frame] = new_linked_list('s');
-				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0]);
+				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0], sizeof(char *));
 			}
 		}
 		else{
@@ -499,14 +499,14 @@ LinkedList *extract_open_reading_frames(char *sequence) {
 					if (internal_aa == 'M' && index != 0) {
 						int c_index = *(int *)malloc(sizeof(int *));
 						c_index = index;
-						internal_indexes->append(internal_indexes, &c_index);
+						internal_indexes->append(internal_indexes, &c_index, sizeof(int *));
 					}
 					orf[index] = internal_aa;
 					entry = entry->next;
 					index++;
 				}
 				orf[index] = '\0';
-				orfs->append(orfs, orf);
+				orfs->append(orfs, orf, sizeof(char *));
 				entry = internal_indexes->root;
 				
 				// take the internal starting points and make new strings
@@ -515,7 +515,7 @@ LinkedList *extract_open_reading_frames(char *sequence) {
 					int buffer_size = (current_orfs[reading_frame]->size - start_index + 1);
 					char *orf_buffer = (char*)malloc(sizeof(char) * buffer_size);
 					memcpy(orf_buffer, &orf[start_index], buffer_size);
-					orfs->append(orfs, orf_buffer);
+					orfs->append(orfs, orf_buffer, sizeof(char *));
 					entry = entry->next;
 				}
 				// free the memory again
@@ -525,7 +525,7 @@ LinkedList *extract_open_reading_frames(char *sequence) {
 			}
 			else {
 				// add the next amino acid
-				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0]);
+				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0], sizeof(char *));
 			}
 		}
 	}
