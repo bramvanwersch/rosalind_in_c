@@ -25,9 +25,9 @@ Functions used by most datastructures in this file.
 */
 
 static void print_type(char type, void *value);
-unsigned hash(char *key, int size);
-void raise_memory_error(char *message);
-void raise_value_error(char *message);
+static unsigned hash(char *key, int size);
+static void raise_memory_error(char *message);
+static void raise_value_error(char *message);
 
 
 /*
@@ -69,7 +69,7 @@ very decent and simple hash function
 key (char pointer): character array to be hashed. Has to be null terminated.
 container_size (int): the size of the container the hash needs to map to.
 */
-unsigned hash(char *key, int container_size)
+static unsigned hash(char *key, int container_size)
 {
 	unsigned long hash = 5381;
 	int c;
@@ -87,7 +87,7 @@ Signify the user there is not enough memory and exit
 message (char pointer): null terminated character array with an additional 
 	message.
 */
-void raise_memory_error(char *message) {
+static void raise_memory_error(char *message) {
 	printf("MemoryError: Cannot allocate enought memory. %s\n", message);
 	exit(1);
 }
@@ -99,7 +99,7 @@ Signify the user there an input is invalid and exit
 message (char pointer): null terminated character array with an additional
 	message.
 */
-void raise_value_error(char *message) {
+static void raise_value_error(char *message) {
 	printf("ValueError: Invalid value. %s\n", message);
 	exit(2);
 }
@@ -112,17 +112,16 @@ LINKED LIST FUNCTIONS
 Functions for creation and management of a LinkedList data structure. 
 */
 
-// public
-LinkedEntry *new_linked_entry();
+LinkedList *new_linked_list(char type);
 
-// private
-void append_entry(LinkedList *self, void *value, int sizeof_value);
-void **to_array(LinkedList *self, int from, int until);
-void copy_linked_list_pointers(LinkedList *self, void **out_array, int from,
-	int until);
-void delete_linked_list(LinkedList *self);
-void delete_linked_entry(LinkedEntry *entry);
-void print_linked_list(LinkedList *self);
+static LinkedEntry *new_linked_entry();
+static void append_entry(LinkedList *self, void *value, int sizeof_value);
+static void **to_array(LinkedList *self, int from, int until);
+static void copy_linked_list_pointers(LinkedList *self, void **out_array,
+	int from, int until);
+static void delete_linked_list(LinkedList *self);
+static void delete_linked_entry(LinkedEntry *entry);
+static void print_linked_list(LinkedList *self);
 
 
 /*
@@ -164,7 +163,7 @@ Create a LinkedEntry. These are entries of a linked list.
 
 Returns (LinkedEntry pointer): pointer to the newly innitialised entry
 */
-LinkedEntry *new_linked_entry() {
+static LinkedEntry *new_linked_entry() {
 	LinkedEntry *new_entry;
 	new_entry = (LinkedEntry *)malloc(sizeof(*new_entry));
 	if (new_entry == NULL) {
@@ -183,7 +182,7 @@ value (void pointer): value of any type that is appended. All values of a
 	LinkedList should have the same type, otherwise undefined behaviour can
 	occur.
 */
-void append_entry(LinkedList *self, void *value, int sizeof_value) {
+static void append_entry(LinkedList *self, void *value, int sizeof_value) {
 	LinkedEntry* new_entry = new_linked_entry();
 
 	//place value at the current end
@@ -212,7 +211,7 @@ until (int): positive integer
 
 Returns (void pointer pointer): a slice of the input LinkedList
 */
-void **to_array(LinkedList *self, int from, int until) {
+static void **to_array(LinkedList *self, int from, int until) {
 	if (until < 0 || from < 0 || until <= from) {
 		raise_value_error("From has to be bigger or equal to until.");
 	}
@@ -239,7 +238,7 @@ out_array (void pointer pointer): the list to put the LinkedList values into.
 from (int): valid positive integer
 until (int): valid positive integer
 */
-void copy_linked_list_pointers(LinkedList *self, void **out_array, int from,
+static void copy_linked_list_pointers(LinkedList *self, void **out_array, int from,
 	int until) {
 	LinkedEntry *entry = self->root;
 	int index = 0;
@@ -268,7 +267,7 @@ NOTE: values are not freed because they are not guaranteed to be malloced and
 
 self (LinkedList pointer): the LinkedList to delete.
 */
-void delete_linked_list(LinkedList *self) {
+static void delete_linked_list(LinkedList *self) {
 	LinkedEntry *entry = self->root;
 	LinkedEntry *old_entry;
 	while (entry->next != NULL) {
@@ -285,7 +284,7 @@ Safely delete a LinkedEntry
 
 entry (LinkedEntry pointer): pointer to the entry to delete.
 */
-void delete_linked_entry(LinkedEntry *entry) {
+static void delete_linked_entry(LinkedEntry *entry) {
 	free(entry->value);
 	free(entry);
 }
@@ -295,7 +294,7 @@ Fancy print of a LinkedList in a python syntax style
 
 self (LinkedList pointer): the LinkedList to print.
 */
-void print_linked_list(LinkedList *self) {
+static void print_linked_list(LinkedList *self) {
 	LinkedEntry *entry = self->root;
 	printf("[");
 	while (entry->next != NULL) {
@@ -327,20 +326,20 @@ Functions for instantiation maintenance and manipulation of a HashTable
 HashTable *new_hash_table(char type);
 
 // private
-HashEntry **create_hash_table_table(int size);
-HashEntry *new_hash_entry();
-void delete_hash_entry(HashEntry *e);
-void raise_key_error(char *key);
-void *get_value(HashTable *table, char *key);
-int in_hash_table(HashTable *self, char *key);
-HashEntry *hash_entry_from_key(HashTable *self, char *key);
-void add_key_value_pair(HashTable *table, char *key, void *value, int sizeof_value);
-void change_hash_table_size(HashTable *table, int new_max_size);
-void remove_hash_entry(HashTable *self, char *key);
-char **hash_table_keys(HashTable *self);
-void print_hash_table(HashTable *self);
-void print_full_hash_table(HashTable *self);
-void print_hash_entry(HashEntry *e, int index, char type);
+static HashEntry **create_hash_table_table(int size);
+static HashEntry *new_hash_entry();
+static void delete_hash_entry(HashEntry *e);
+static void raise_key_error(char *key);
+static void *get_value(HashTable *table, char *key);
+static int in_hash_table(HashTable *self, char *key);
+static HashEntry *hash_entry_from_key(HashTable *self, char *key);
+static void add_key_value_pair(HashTable *table, char *key, void *value, int sizeof_value);
+static void change_hash_table_size(HashTable *table, int new_max_size);
+static void remove_hash_entry(HashTable *self, char *key);
+static char **hash_table_keys(HashTable *self);
+static void print_hash_table(HashTable *self);
+static void print_full_hash_table(HashTable *self);
+static void print_hash_entry(HashEntry *e, int index, char type);
 
 
 /*
@@ -385,7 +384,7 @@ size(int): the size of the array
 
 Returns(HashEntry pointer pointer): an array of pointers to NULLED hash entries
 */
-HashEntry **create_hash_table_table(int size) {
+static HashEntry **create_hash_table_table(int size) {
 	HashEntry **new_table;
 	if (size <= 0) {
 		raise_value_error("Failed to create HashTable of the given size. Size \
@@ -408,7 +407,7 @@ Create a HashEntry and raise memory error when appropriate
 
 Returns (HashEntry pointer): a pointer to a HashEntry.
 */
-HashEntry *new_hash_entry() {
+static HashEntry *new_hash_entry() {
 	HashEntry *entry_pointer;
 	entry_pointer = malloc(sizeof(*entry_pointer));
 	if (entry_pointer == NULL) {
@@ -426,7 +425,7 @@ Safely delete a HashEntry and all contained information
 
 entry (HashEntry pointer): the entry to delete.
 */
-void delete_hash_entry(HashEntry *entry) {
+static void delete_hash_entry(HashEntry *entry) {
 	free(entry->key);
 	free(entry->value);
 	free(entry);
@@ -439,7 +438,7 @@ Signify the user that there is no key with the given key name
 key (char pointer): null terminated character array that is the name of a key
 	not in the HashTable
 */
-void raise_key_error(char *key) {
+static void raise_key_error(char *key) {
 	printf("Keyerror. Key '%s' not in HashTable\n", key);
 	exit(3);
 }
@@ -453,7 +452,7 @@ key (char pointer): key that corresponds to value
 
 Returns (void pointer): value saved at the given key. 
 */
-void *get_value(HashTable *self, char *key) {
+static void *get_value(HashTable *self, char *key) {
 	HashEntry *result = hash_entry_from_key(self, key);
 	if (result == NULL) {
 		raise_key_error(key);
@@ -472,7 +471,7 @@ key (char pointer): key that corresponds to value
 Returns (int): 0 if key is not present 1 if it is present. (can use True or 
 	False to test as well).
 */
-int in_hash_table(HashTable *self, char *key) {
+static int in_hash_table(HashTable *self, char *key) {
 	if (hash_entry_from_key(self, key) == NULL) {
 		return False;
 	}
@@ -489,7 +488,7 @@ key (char pointer): key that corresponds to value
 Returns (HashEntry pointer || NULL): a HashEntry pointer if the ket is present
 	in self otherwise NULL.
 */
-HashEntry *hash_entry_from_key(HashTable *self, char *key) {
+static HashEntry *hash_entry_from_key(HashTable *self, char *key) {
 	HashEntry *entry_pointer;
 
 	//Look for an entry as long as there are more entries at a hash of a key
@@ -515,7 +514,7 @@ key (char pointer): key to place the value at.
 value (void pointer): value to be placed at the key
 sizeof_value (int): the size of the value in order to copy the value.
 */
-void add_key_value_pair(HashTable *self, char *key, void *value,
+static void add_key_value_pair(HashTable *self, char *key, void *value,
 	int sizeof_value) {
 	HashEntry *new_entry;
 	new_entry = hash_entry_from_key(self, key);
@@ -562,7 +561,7 @@ hash_table (HashTable pointer): a pointer to the HashTable that has to be
 	increased.
 new_max_size (int): new size for the table. Has to be bigger than 0.
 */
-void change_hash_table_size(HashTable *hash_table, int new_max_size) {
+static void change_hash_table_size(HashTable *hash_table, int new_max_size) {
 	int orig_size = hash_table->max_size;
 	HashEntry **orig_table = hash_table->table;
 	hash_table->max_size = new_max_size;
@@ -594,7 +593,7 @@ Delete a key and value pair from the HashTable.
 self (HashTable pointer): the HashTable to remove the value from.
 key (char pointer): key to delete the value from.
 */
-void remove_hash_entry(HashTable *self, char *key) {
+static void remove_hash_entry(HashTable *self, char *key) {
 	HashEntry *current_entry, *previous_entry;
 
 	/* create 2 pointers, 1 to the current and one to the previous element */
@@ -633,7 +632,7 @@ self (HashTable pointer): pointer to the hashtable to retrieve the keys from
 
 Returns (char pointer pointer): return a null terminated array of strings.
 */
-char **hash_table_keys(HashTable *self) {
+static char **hash_table_keys(HashTable *self) {
 	char **keys;
 	keys = malloc(sizeof(*keys) * (self->current_size + 1));
 	int values_index = 0;
@@ -657,7 +656,7 @@ self (HashTable pointer): pointer a HashTable to print.
 NOTE: printing may fail if the type given to the HashTable and the actual type
 	of the values do not match.
 */
-void print_hash_table(HashTable *self) {
+static void print_hash_table(HashTable *self) {
 	printf("{");
 	int printed_first = False;
 	for (int i = 0; i < self->max_size; i++) {
@@ -685,7 +684,7 @@ collision)
 
 self (HashTable pointer): pointer a HashTable to print.
 */
-void print_full_hash_table(HashTable *hash_table) {
+static void print_full_hash_table(HashTable *hash_table) {
 	int i;
 
 	printf("Hastable of size %d:{\n", hash_table->max_size);
@@ -708,7 +707,7 @@ row_index (int): genuine index if this is the first call of the recursive stack
 type (char): a character that is the type of the HashTable the entry originates
 	from.
 */
-void print_hash_entry(HashEntry *entry, int row_index, char type) {
+static void print_hash_entry(HashEntry *entry, int row_index, char type) {
 	if (row_index >= 0) {
 		printf("\tEntry %d = %s: ", row_index, entry->key);
 	}
@@ -734,21 +733,19 @@ Functions for making manipulating and maintining Sets.This Set implementation
 is verry much like the HashTable implementation but without values.
 */
 
-// public 
 Set *new_set();
 
-// private
-SetEntry **create_set_table(int size);
-SetEntry *new_set_entry();
-void delete_set_entry(SetEntry *entry);
-char **set_values(Set *self);
-void add_set_entry(Set *self, char *value);
-int value_in_set(Set *self, char *value);
-void remove_set_entry(Set *self, char *value);
-void change_set_size(Set *set, int new_max_size);
-void print_set(Set *self);
-void print_full_set(Set *self);
-void print_set_entry(SetEntry *e, int index);
+static SetEntry **create_set_table(int size);
+static SetEntry *new_set_entry();
+static void delete_set_entry(SetEntry *entry);
+static char **set_values(Set *self);
+static void add_set_entry(Set *self, char *value);
+static int value_in_set(Set *self, char *value);
+static void remove_set_entry(Set *self, char *value);
+static void change_set_size(Set *set, int new_max_size);
+static void print_set(Set *self);
+static void print_full_set(Set *self);
+static void print_set_entry(SetEntry *e, int index);
 
 
 /*
@@ -785,7 +782,7 @@ size(int): the size of the array
 
 Returns(SetEntry pointer pointer): an array of pointers to NULLED set entries
 */
-SetEntry **create_set_table(int size) {
+static SetEntry **create_set_table(int size) {
 	SetEntry **new_table;
 	if (size <= 0) {
 		raise_value_error("Failed to create HashTable of the given size. Size \
@@ -811,7 +808,7 @@ self (Set pointer): pointer to the Set to get the values from.
 Returns (char pointer pointer): an array of strings with all values from the 
 	Set.
 */
-char **set_values(Set *self) {
+static char **set_values(Set *self) {
 	char **values;
 	values = malloc(sizeof(*values) * (self->current_size + 1));
 	int values_index = 0;
@@ -831,7 +828,7 @@ char **set_values(Set *self) {
 /*
 Create a new Set entry 
 */
-SetEntry *new_set_entry() {
+static SetEntry *new_set_entry() {
 	SetEntry *new_entry;
 	new_entry = malloc(sizeof(*new_entry));
 	//check if there is a problem allocating memory 
@@ -842,7 +839,7 @@ SetEntry *new_set_entry() {
 }
 
 
-void delete_set_entry(SetEntry *entry) {
+static void delete_set_entry(SetEntry *entry) {
 	free(entry->key);
 	free(entry);
 }
@@ -853,7 +850,7 @@ Add a value to the Set.
 self (Set pointer): pointer to the Set to add the value to.
 value (char pointer): a string to add to the Set
 */
-void add_set_entry(Set *self, char *value) {
+static void add_set_entry(Set *self, char *value) {
 	
 	unsigned hash_value;
 
@@ -895,13 +892,11 @@ Remove a value from a set by name.
 self (Set pointer): pointer to the set to remove the entry from
 value (char pointer): string of the value to remove.
 */
-void remove_set_entry(Set *self, char *value) {
+static void remove_set_entry(Set *self, char *value) {
 	SetEntry *current_entry, *previous_entry;
 
-	/* create 2 pointers, 1 to the current and one to the previous element */
 	for (current_entry = previous_entry = self->table[hash(value, self->max_size)];
 		current_entry != NULL; current_entry = current_entry->next) {
-		// when an actual match is found 
 		if (strcmp(value, current_entry->key) == 0) {
 			self->current_size--;
 			if (current_entry == previous_entry) {
@@ -910,7 +905,6 @@ void remove_set_entry(Set *self, char *value) {
 			else {
 				previous_entry->next = current_entry->next;
 			}
-			// when the dictionary becomes to big collision becomes more likely, so increase the size
 			if (self->current_size < 
 				(int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
 				change_set_size(self, self->max_size / 2);
@@ -938,7 +932,7 @@ value (char pointer): string of the value to test for.
 
 Return (int): 1 for succes and 0 for failure.
 */
-int value_in_set(Set *self, char *value) {
+static int value_in_set(Set *self, char *value) {
 	SetEntry *entry_pointer;
 	for (entry_pointer = self->table[hash(value, self->max_size)];
 		entry_pointer != NULL; entry_pointer = entry_pointer->next) {
@@ -957,7 +951,7 @@ Change the size of a Set's table
 set (Set pointer): a pointer to the set that has to be increased.
 new_max_size (int): new size for the table. Has to be bigger than 0.
 */
-void change_set_size(Set *set, int new_max_size) {
+static void change_set_size(Set *set, int new_max_size) {
 	int orig_size = set->max_size;
 	SetEntry **orig_table = set->table;
 	set->max_size = new_max_size;
@@ -987,7 +981,7 @@ Print a set in a python like format
 
 self (Set pointer): pointer to the Set to print.
 */
-void print_set(Set *self) {
+static void print_set(Set *self) {
 	printf("{");
 	int printed_first = False;
 	for (int i = 0; i < self->max_size; i++) {
@@ -1013,7 +1007,7 @@ Print a set in a full format that allows to investigate size and collision.
 
 self (Set pointer): set to print in full.
 */
-void print_full_set(Set *self) {
+static void print_full_set(Set *self) {
 	int i;
 
 	printf("Set of size %d:{\n", self->max_size);
@@ -1034,7 +1028,7 @@ entry (SetEntry pointer): pointer to a SetEntry acting as the row.
 row_index (int): genuine index if this is the first call of the recursive stack
 	-1 otherwise.
 */
-void print_set_entry(SetEntry *e, int row_index) {
+static void print_set_entry(SetEntry *e, int row_index) {
 	//if the index is bigger it is a genuine index. Else it is an indicator that is a repeat.
 	if (row_index >= 0) {
 		printf("\tEntry %d = %s", row_index, e->key);
