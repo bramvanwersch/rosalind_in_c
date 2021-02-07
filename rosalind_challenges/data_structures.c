@@ -743,6 +743,7 @@ static void add_set_entry(Set *self, char *value);
 static int value_in_set(Set *self, char *value);
 static void remove_set_entry(Set *self, char *value);
 static void change_set_size(Set *set, int new_max_size);
+static void union_sets(Set *self, Set *other_set);
 static void print_set(Set *self);
 static void print_full_set(Set *self);
 static void print_set_entry(SetEntry *e, int index);
@@ -771,6 +772,7 @@ Set *new_set() {
 	new_set->print = print_set;
 	new_set->remove = remove_set_entry;
 	new_set->values = set_values;
+	new_set->union_sets = union_sets;
 	return new_set;
 }
 
@@ -894,7 +896,6 @@ value (char pointer): string of the value to remove.
 */
 static void remove_set_entry(Set *self, char *value) {
 	SetEntry *current_entry, *previous_entry;
-
 	for (current_entry = previous_entry = self->table[hash(value, self->max_size)];
 		current_entry != NULL; current_entry = current_entry->next) {
 		if (strcmp(value, current_entry->key) == 0) {
@@ -976,6 +977,17 @@ static void change_set_size(Set *set, int new_max_size) {
 	free(orig_table);
 }
 
+
+static void union_sets(Set *self, Set *other_set) {
+	for (int index = 0; index < other_set->max_size; index++) {
+		SetEntry *entry_pointer = other_set->table[index];
+		while (entry_pointer != NULL) {
+			self->add(self, entry_pointer->key);
+			entry_pointer = entry_pointer->next;
+		}
+	}
+}
+
 /*
 Print a set in a python like format 
 
@@ -984,8 +996,8 @@ self (Set pointer): pointer to the Set to print.
 static void print_set(Set *self) {
 	printf("{");
 	int printed_first = False;
-	for (int i = 0; i < self->max_size; i++) {
-		SetEntry *entry_pointer = self->table[i];
+	for (int index = 0; index < self->max_size; index++) {
+		SetEntry *entry_pointer = self->table[index];
 		if (entry_pointer != NULL) {
 			do {
 				if (printed_first != False) {
@@ -1049,19 +1061,20 @@ static void print_set_entry(SetEntry *e, int row_index) {
 
 int test_linked_list() {
 	printf("Start LinkedList tests:\n");
-	int sizeof_str = sizeof(char *);
+	int sizeof_str = sizeof(char) * 4;
 	LinkedList *test = new_linked_list('s');
 	test->print(test);
 	test->append(test, "test1", sizeof_str);
 	test->print(test);
 	test->to_array(test, 0, test->size);
-	test->append(test, "test2", sizeof_str);
+	test->append(test, "longtest_string_that_should not fit??",
+		sizeof("longtest_string_that_should not fit??"));
 	test->append(test, "test3", sizeof_str);
 	test->append(test, "test4", sizeof_str);
 	test->print(test);
 
 	LinkedList *test2 = new_linked_list('d');
-	int i = 1;
+	int i = 1234567890;
 	int j = 5;
 	test2->append(test2, &i, sizeof(int));
 	test2->append(test2, &j, sizeof(int));
@@ -1076,18 +1089,19 @@ int test_linked_list() {
 
 int test_hash_table() {
 	printf("Start HashTable tests:\n");
-	int sizeof_str = sizeof(char *);
+	int sizeof_str = sizeof(char) * 6;
 	HashTable *test_table = new_hash_table('s');
 	test_table->print(test_table);
 	print_full_hash_table(test_table);
-	test_table->add(test_table, "key1", "value1", sizeof_str);
 	test_table->add(test_table, "key1", "value2", sizeof_str);
+	test_table->add(test_table, "key1", "longtest_string_that_should not fit??",
+		sizeof("longtest_string_that_should not fit??"));
 	test_table->add(test_table, "key_number_2", "value2", sizeof_str);
-	test_table->add(test_table, "key3", "value24", sizeof_str);
+	test_table->add(test_table, "key3", "value24", sizeof_str + 1);
 
 	test_table->print(test_table);
 	print_full_hash_table(test_table);
-	test_table->add(test_table, "key4", "value23", sizeof_str);
+	test_table->add(test_table, "key4", "value23", sizeof_str + 1);
 
 	test_table->print(test_table);
 	print_full_hash_table(test_table);
@@ -1118,7 +1132,7 @@ int test_set() {
 	print_full_set(test_set);
 
 	test_set->add(test_set, "test1");
-	test_set->add(test_set, "test2");
+	test_set->add(test_set, "longtest_string_that_should not fit??");
 	test_set->add(test_set, "test_2");
 	test_set->add(test_set, "test_3");
 	test_set->add(test_set, "test_4");
@@ -1133,11 +1147,21 @@ int test_set() {
 	printf("\n");
 
 	test_set->remove(test_set, "test1");
-	test_set->remove(test_set, "test2");
+	test_set->remove(test_set, "longtest_string_that_should not fit??");
 	test_set->remove(test_set, "test_4");
 	test_set->remove(test_set, "test_3");
 	test_set->print(test_set);
 	print_full_set(test_set);
+	test_set->add(test_set, "new entry");
+
+	Set *test_set2 = new_set();
+	test_set2->add(test_set2, "test_2");
+	test_set2->add(test_set2, "2test");
+	test_set2->add(test_set2, "3test");
+	test_set2->add(test_set2, "4test");
+
+	test_set2->union_sets(test_set2, test_set);
+	test_set2->print(test_set2);
 
 	printf("Set tests finished succesfully\n\n");
 	return 0;

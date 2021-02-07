@@ -49,7 +49,7 @@ LinkedList* read_lines(FILE *file_pointer) {
 
 	int long line_byte_size;
 	char ch;
-	char *line;
+	char *line = NULL;
 	LinkedList* all_lines = new_linked_list('s');
 
 	// allocate sufficient memory for any possible line --> might be overkill or realy bad, not sure
@@ -73,9 +73,11 @@ LinkedList* read_lines(FILE *file_pointer) {
 				printf("malloc ran out of memory when allocating memory for the next line.\n");
 				return NULL;
 			}
-
 			strcpy_s(line, buffer_index + 1, buffer);
-			all_lines->append(all_lines, line, sizeof(char *));
+			all_lines->append(all_lines, line, line_byte_size);
+
+			free(line);
+
 			buffer_index = 0;
 			if (ch == EOF) {
 				break;
@@ -106,7 +108,8 @@ LinkedList *get_linked_fasta_lines(FILE *input_file_pointer) {
 		char *line = (char *)entry->value;
 		if (line[0] == '>') {
 			if (value != NULL) {
-				fasta_lines->append(fasta_lines, value, sizeof(char *));
+				fasta_lines->append(fasta_lines, value, sizeof(char) * (value_len + 1));
+				free(value);
 			}
 			value = NULL;
 			value_len = 0;
@@ -129,7 +132,7 @@ LinkedList *get_linked_fasta_lines(FILE *input_file_pointer) {
 		}
 		entry = entry->next;
 	}
-	fasta_lines->append(fasta_lines, value, sizeof(char *));
+	fasta_lines->append(fasta_lines, value, sizeof(char) * (value_len + 1));
 	return fasta_lines;
 }
 
@@ -151,7 +154,7 @@ HashTable *get_aa_table() {
 		return amino_acid_table;
 	}
 	amino_acid_table = new_hash_table('s');
-	int sizeof_str = sizeof(char *);
+	int sizeof_str = sizeof(char) * 2;
 	amino_acid_table->add(amino_acid_table, "GCU", "A", sizeof_str);
 	amino_acid_table->add(amino_acid_table, "GCC", "A", sizeof_str);
 	amino_acid_table->add(amino_acid_table, "GCA", "A", sizeof_str);
@@ -294,7 +297,7 @@ char* reverse_complement_DNA(char *sequence) {
 			reverse_complement[rev_comp_index] = 'A';
 			break;
 		default:
-			fprintf(stderr, "Invalid character %d\n", ch);
+			fprintf(stderr, "Invalid character %c\n", ch);
 			exit(1);
 		}
 		rev_comp_index++;

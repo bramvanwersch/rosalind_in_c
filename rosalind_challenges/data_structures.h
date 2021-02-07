@@ -67,6 +67,7 @@ typedef struct Set {
 	void(*print)(struct Set *self);
 	int(*in)(struct Set *self, char *value);
 	char **(*values)(struct Set *self);
+	void(*union_sets)(struct Set *self, struct Set *other_set);
 
 }Set;
 

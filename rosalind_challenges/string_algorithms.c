@@ -434,7 +434,7 @@ LinkedList *find_restriction_sites(char *sequence) {
 	return result;
 }
 
-LinkedList *extract_open_reading_frames(char *sequence);
+Set *extract_open_reading_frames(char *sequence);
 
 int open_reading_frames(char *argv[]) {
 	// read the input file into memory
@@ -444,25 +444,28 @@ int open_reading_frames(char *argv[]) {
 	LinkedList *fasta_lines = get_linked_fasta_lines(input_file_pointer);
 	char *sequence = fasta_lines->root->value;
 	char *r_sequence = reverse_complement_DNA(sequence);
+	Set *forward_orfs = extract_open_reading_frames(sequence);
 
-	printf("%s\n", sequence);
-	LinkedList *forward_orfs = extract_open_reading_frames(sequence);
+	Set *reverse_orfs = extract_open_reading_frames(r_sequence);
 
-	printf("%s\n", r_sequence);
-	LinkedList *reverse_orfs = extract_open_reading_frames(r_sequence);
+	forward_orfs->union_sets(forward_orfs, reverse_orfs);
 
-	reverse_orfs->print(reverse_orfs);
 	forward_orfs->print(forward_orfs);
-
+	char **forward_orfs_array = forward_orfs->values(forward_orfs);
+	for (int index = 0; index < forward_orfs->current_size - 1; index++) {
+		char *orf = forward_orfs_array[index];
+		fprintf(output_file_pointer, "%s\n", orf);
+	}
+	fprintf(output_file_pointer, "%s", forward_orfs_array[forward_orfs->current_size - 1]);
 
 	fclose(output_file_pointer);
 	fclose(input_file_pointer);
 	return 0;
 }
 
-LinkedList *extract_open_reading_frames(char *sequence) {
+Set *extract_open_reading_frames(char *sequence) {
 	HashTable *amino_acid_table = get_aa_table();
-	LinkedList *orfs = new_linked_list('s');
+	Set *orfs = new_set();
 	int seq_len = strlen(sequence);
 	char codon[4];
 	int reading_frame;
@@ -482,13 +485,14 @@ LinkedList *extract_open_reading_frames(char *sequence) {
 		if (current_orfs[reading_frame] == NULL) {
 			if (aa[0] == 'M') {
 				current_orfs[reading_frame] = new_linked_list('s');
-				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0], sizeof(char *));
+				current_orfs[reading_frame]->append(current_orfs[reading_frame], &aa[0], sizeof(char));
 			}
 		}
 		else{
 			// save orf and all orfs contained in that orf into the orfs linked list
 			if (aa[0] == 'X') {
-				char *orf = (char *)malloc(sizeof(char) * (current_orfs[reading_frame]->size + 1));
+				int orf_bit_size = sizeof(char) * (current_orfs[reading_frame]->size + 1);
+				char *orf = (char *)malloc(orf_bit_size);
 
 				LinkedEntry *entry = current_orfs[reading_frame]->root;
 				int index = 0;
@@ -497,31 +501,36 @@ LinkedList *extract_open_reading_frames(char *sequence) {
 					char internal_aa = *(char *)entry->value;
 					// catch orfs inside other orfs
 					if (internal_aa == 'M' && index != 0) {
-						int c_index = *(int *)malloc(sizeof(int *));
-						c_index = index;
-						internal_indexes->append(internal_indexes, &c_index, sizeof(int *));
+						int *c_index = (int *)malloc(sizeof(int *));
+						*c_index = index;
+						internal_indexes->append(internal_indexes, c_index, sizeof(int));
+						free(c_index);
 					}
 					orf[index] = internal_aa;
 					entry = entry->next;
 					index++;
 				}
 				orf[index] = '\0';
-				orfs->append(orfs, orf, sizeof(char *));
+				orfs->add(orfs, orf);
 				entry = internal_indexes->root;
 				
 				// take the internal starting points and make new strings
 				while (entry->next != NULL) {
 					int start_index = *(int *)entry->value;
 					int buffer_size = (current_orfs[reading_frame]->size - start_index + 1);
-					char *orf_buffer = (char*)malloc(sizeof(char) * buffer_size);
+					int buffer_bit_size = sizeof(char) * buffer_size;
+					char *orf_buffer = (char*)malloc(buffer_bit_size);
 					memcpy(orf_buffer, &orf[start_index], buffer_size);
-					orfs->append(orfs, orf_buffer, sizeof(char *));
+					orfs->add(orfs, orf_buffer);
+					free(orf_buffer);
 					entry = entry->next;
 				}
 				// free the memory again
+				free(orf);
 				current_orfs[reading_frame]->delete(current_orfs[reading_frame]);
 				current_orfs[reading_frame] = NULL;
 				internal_indexes->delete(internal_indexes);
+				internal_indexes = NULL;
 			}
 			else {
 				// add the next amino acid
