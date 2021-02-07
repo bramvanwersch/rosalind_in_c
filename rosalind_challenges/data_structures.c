@@ -24,7 +24,7 @@ GENERAL USE FUNCTIONS
 Functions used by most datastructures in this file.
 */
 
-void print_type(char type, void *value);
+static void print_type(char type, void *value);
 unsigned hash(char *key, int size);
 void raise_memory_error(char *message);
 void raise_value_error(char *message);
@@ -38,7 +38,7 @@ type (char): type used for printing. Available options are c=char, s=string,
 value (void pointer): value of any type that should match type. Otherwise 
 	undifined behaviour.
 */
-void print_type(char type, void *value) {
+static void print_type(char type, void *value) {
 	switch (type) {
 	case ('s'):
 		printf("%s", (char *)value);
@@ -328,7 +328,6 @@ HashTable *new_hash_table(char type);
 
 // private
 HashEntry **create_hash_table_table(int size);
-
 HashEntry *new_hash_entry();
 void delete_hash_entry(HashEntry *e);
 void raise_key_error(char *key);
@@ -610,7 +609,7 @@ void remove_hash_entry(HashTable *self, char *key) {
 			else {
 				previous_entry->next = current_entry->next;
 			}
-			//decrease the dict if the table is too empty
+			//decrease the hash_table if the table is too empty
 			if (self->current_size <
 				(int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
 				change_hash_table_size(self, self->max_size / 2);
@@ -726,9 +725,22 @@ void print_hash_entry(HashEntry *entry, int row_index, char type) {
 }
 
 
+/*
+-------------
+SET FUNCTIONS
+-------------
 
-// SET FUNCTIONS
+Functions for making manipulating and maintining Sets.This Set implementation 
+is verry much like the HashTable implementation but without values.
+*/
 
+// public 
+Set *new_set();
+
+// private
+SetEntry **create_set_table(int size);
+SetEntry *new_set_entry();
+void delete_set_entry(SetEntry *entry);
 char **set_values(Set *self);
 void add_set_entry(Set *self, char *value);
 int value_in_set(Set *self, char *value);
@@ -738,33 +750,24 @@ void print_set(Set *self);
 void print_full_set(Set *self);
 void print_set_entry(SetEntry *e, int index);
 
-Set *new_set(int size) {
-	int i;
-	Set *new_set;
 
-	//make sure the size is bigger then 0
-	if (size < 1) {
-		printf("Cannot instantiate set smaller then 1.");
-		exit(1);
-	}
+/*
+Create a new set. Sets can only contain char pointers
+
+Returns (Set): pointer to a Set.
+*/
+Set *new_set() {
+	Set *new_set;
 
 	//allocate the set
 	new_set = malloc(sizeof(*new_set));
 	if (new_set == NULL) {
-		printf("Cannot allocate memory for the new Set\n");
-		exit(1);
+		raise_memory_error("Failed to allocate memory for new Set.");
 	}
 	// Allocate pointers to the head nodes.
-	new_set->table = (SetEntry **)malloc(sizeof(SetEntry *) * size);
-	if (new_set->table == NULL) {
-		printf("Cannot allocate memory for the new Set table\n");
-		exit(1);
-	}
-	for (i = 0; i < size; i++) {
-		new_set->table[i] = NULL;
-	}
+	new_set->table = create_set_table(INNITIAL_TABLE_SIZE);
 
-	new_set->max_size = size;
+	new_set->max_size = INNITIAL_TABLE_SIZE;
 	new_set->current_size = 0;
 	new_set->add = add_set_entry;
 	new_set->in = value_in_set;
@@ -774,6 +777,40 @@ Set *new_set(int size) {
 	return new_set;
 }
 
+
+/*
+Create a array of NULLED SetEntry pointers for a given size
+
+size(int): the size of the array
+
+Returns(SetEntry pointer pointer): an array of pointers to NULLED set entries
+*/
+SetEntry **create_set_table(int size) {
+	SetEntry **new_table;
+	if (size <= 0) {
+		raise_value_error("Failed to create HashTable of the given size. Size \
+			has to be bigger than 0.");
+	}
+	new_table = malloc(sizeof(*new_table) * size);
+	if (new_table == NULL) {
+		raise_memory_error("Failed to allocate memory for table of HashTable.");
+	}
+
+	for (int index = 0; index < size; index++) {
+		new_table[index] = NULL;
+	}
+	return new_table;
+}
+
+
+/*
+Get all values in a Set in an array of pointers
+
+self (Set pointer): pointer to the Set to get the values from.
+
+Returns (char pointer pointer): an array of strings with all values from the 
+	Set.
+*/
 char **set_values(Set *self) {
 	char **values;
 	values = malloc(sizeof(*values) * (self->current_size + 1));
@@ -781,7 +818,7 @@ char **set_values(Set *self) {
 	for (int index = 0; index < self->max_size; index++) {
 		SetEntry *entry = self->table[index];
 		while (entry != NULL) {
-			values[values_index] = entry->value;
+			values[values_index] = entry->key;
 			values_index++;
 			entry = entry->next;
 		}
@@ -790,8 +827,34 @@ char **set_values(Set *self) {
 	return values;
 }
 
-void add_set_entry(Set *self, char *value) {
+
+/*
+Create a new Set entry 
+*/
+SetEntry *new_set_entry() {
 	SetEntry *new_entry;
+	new_entry = malloc(sizeof(*new_entry));
+	//check if there is a problem allocating memory 
+	if (new_entry == NULL) {
+		raise_memory_error("Failed to allocate memmory for SetEntry.");
+	}
+	return new_entry;
+}
+
+
+void delete_set_entry(SetEntry *entry) {
+	free(entry->key);
+	free(entry);
+}
+
+/*
+Add a value to the Set.
+
+self (Set pointer): pointer to the Set to add the value to.
+value (char pointer): a string to add to the Set
+*/
+void add_set_entry(Set *self, char *value) {
+	
 	unsigned hash_value;
 
 	// if value not in set
@@ -799,16 +862,12 @@ void add_set_entry(Set *self, char *value) {
 
 		self->current_size++;
 
-		new_entry = (SetEntry*)malloc(sizeof(SetEntry));
-		//check if there is a problem allocating memory 
-		if (new_entry == NULL) {
-			printf("Cannot allocate memory for the new Entry\n");
-			exit(1);
-		}
-		new_entry->value = _strdup(value);
-		if(new_entry->value == NULL){
-			printf("Cannot allocate memory for the new Entry\n");
-			exit(1);
+		SetEntry *new_entry = new_set_entry();
+
+		// can be freed
+		new_entry->key = _strdup(value);
+		if(new_entry->key == NULL){
+			raise_memory_error("Failed to allocate memmory for the value.");
 		}
 
 		//assign the current entry to the next and the new one to the current
@@ -816,91 +875,118 @@ void add_set_entry(Set *self, char *value) {
 		new_entry->next = self->table[hash_value];
 		self->table[hash_value] = new_entry;
 	}
-	// just exit
+	// if in Set already just exit
 	else {
 		return;
 	}
 
-	// when the dictionary becomes to big collision becomes more likely, so increase the size
-	if (self->current_size > (int)(self->max_size * MAX_HASH_TABLE_FRACTION_FILL)) {
+	// when the Set becomes to small, increase size
+	if (self->current_size > 
+		(int)(self->max_size * MAX_HASH_TABLE_FRACTION_FILL)) {
 		change_set_size(self, self->max_size * 2);
 	}
 
 }
 
+
+/*
+Remove a value from a set by name.
+
+self (Set pointer): pointer to the set to remove the entry from
+value (char pointer): string of the value to remove.
+*/
 void remove_set_entry(Set *self, char *value) {
-	SetEntry *ep1, *ep2;
+	SetEntry *current_entry, *previous_entry;
 
 	/* create 2 pointers, 1 to the current and one to the previous element */
-	for (ep1 = ep2 = self->table[hash(value, self->max_size)]; ep1 != NULL; ep2 = ep1, ep1 = ep1->next) {
+	for (current_entry = previous_entry = self->table[hash(value, self->max_size)];
+		current_entry != NULL; current_entry = current_entry->next) {
 		// when an actual match is found 
-		if (strcmp(value, ep1->value) == 0) {
+		if (strcmp(value, current_entry->key) == 0) {
 			self->current_size--;
-
-			// when valur matches the first value of the row
-			if (ep1 == ep2) {
-				self->table[hash(value, self->max_size)] = ep1->next;
+			if (current_entry == previous_entry) {
+				self->table[hash(value, self->max_size)] = current_entry->next;
 			}
-			// other cases
 			else {
-				ep2->next = ep1->next;
+				previous_entry->next = current_entry->next;
 			}
 			// when the dictionary becomes to big collision becomes more likely, so increase the size
-			if (self->current_size < (int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
+			if (self->current_size < 
+				(int)(self->max_size * MIN_HASH_TABLE_FRACTION_FILL)) {
 				change_set_size(self, self->max_size / 2);
 			}
 
 			/*  Free memory  */
-			free(ep1);
+			delete_set_entry(current_entry);
 			return;
+		}
+		else {
+			previous_entry = current_entry;
 		}
 	}
 	/* No key found */
-	printf("KeyError. Key '%s' not in set\n", value);
-	exit(1);
+	raise_key_error(value);
 }
 
-/*Check if a value is in a set 0 if not 1 if in.*/
+
+/*
+Check if a value is in a Set return 0 if the value is not in the Set 1 
+otherwise.
+
+self (Set pointer): pointer to the set to test for.
+value (char pointer): string of the value to test for.
+
+Return (int): 1 for succes and 0 for failure.
+*/
 int value_in_set(Set *self, char *value) {
 	SetEntry *entry_pointer;
-	//Look for an entry as long as there are more entries, in case of collisions
-	for (entry_pointer = self->table[hash(value, self->max_size)]; entry_pointer != NULL; entry_pointer = entry_pointer->next) {
+	for (entry_pointer = self->table[hash(value, self->max_size)];
+		entry_pointer != NULL; entry_pointer = entry_pointer->next) {
 		//check if the name of the pointer is that of the key
-		if (strcmp(value, entry_pointer->value) == 0) {
+		if (strcmp(value, entry_pointer->key) == 0) {
 			return True;
 		}
 	}
 	return False;
 }
 
+
+/*
+Change the size of a Set's table
+
+set (Set pointer): a pointer to the set that has to be increased.
+new_max_size (int): new size for the table. Has to be bigger than 0.
+*/
 void change_set_size(Set *set, int new_max_size) {
 	int orig_size = set->max_size;
 	SetEntry **orig_table = set->table;
 	set->max_size = new_max_size;
 	set->current_size = 0;
 
-	set->table = malloc(sizeof(SetEntry *) * set->max_size);
-	if (set->table == NULL) {
-		printf("Cannot allocate memory for new hash table\n");
-		exit(1);
-	}
+	set->table = create_set_table(set->max_size);
 
-	for (int index = 0; index < set->max_size; index++) {
-		set->table[index] = NULL;
-	}
-
-	// copy values
+	// repoint the entries into the new table
 	for (int index = 0; index < orig_size; index++) {
 		SetEntry *entry = orig_table[index];
+		SetEntry *orig_entry = NULL;
 		while (entry != NULL) {
-			set->add(set, entry->value);
+			unsigned hash_val = hash(entry->key, set->max_size);
+			orig_entry = entry;
 			entry = entry->next;
+
+			orig_entry->next = set->table[hash_val];
+			set->table[hash_val] = orig_entry;
+			set->current_size++;
 		}
 	}
 	free(orig_table);
 }
 
-/*print a simple representation of a set with all the values in any order*/
+/*
+Print a set in a python like format 
+
+self (Set pointer): pointer to the Set to print.
+*/
 void print_set(Set *self) {
 	printf("{");
 	int printed_first = False;
@@ -914,13 +1000,19 @@ void print_set(Set *self) {
 				else {
 					printed_first = True;
 				}
-				printf("%s", entry_pointer->value);
+				printf("%s", entry_pointer->key);
 			} while ((entry_pointer = entry_pointer->next) != NULL);
 		}
 	}
 	printf("}\n");
 }
 
+
+/*
+Print a set in a full format that allows to investigate size and collision.
+
+self (Set pointer): set to print in full.
+*/
 void print_full_set(Set *self) {
 	int i;
 
@@ -934,14 +1026,21 @@ void print_full_set(Set *self) {
 	printf("}\n");
 }
 
-/*Recursive function for printing entries of the hashtable*/
-void print_set_entry(SetEntry *e, int index) {
+
+/*
+Recursively print all entries at a given table row.
+
+entry (SetEntry pointer): pointer to a SetEntry acting as the row.
+row_index (int): genuine index if this is the first call of the recursive stack
+	-1 otherwise.
+*/
+void print_set_entry(SetEntry *e, int row_index) {
 	//if the index is bigger it is a genuine index. Else it is an indicator that is a repeat.
-	if (index >= 0) {
-		printf("\tEntry %d = %s", index, e->value);
+	if (row_index >= 0) {
+		printf("\tEntry %d = %s", row_index, e->key);
 	}
 	else {
-		printf(", %s", e->value);
+		printf(", %s", e->key);
 	}
 	
 	if (e->next != NULL) {

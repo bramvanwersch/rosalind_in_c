@@ -55,7 +55,7 @@ int test_hash_table();
 /*Set structures*/
 typedef struct SetEntry{
 	struct SetEntry *next;
-	char *value;
+	char *key;
 }SetEntry;
 
 typedef struct Set {
@@ -70,5 +70,5 @@ typedef struct Set {
 
 }Set;
 
-Set *new_set(int size);
+Set *new_set();
 int test_set();
