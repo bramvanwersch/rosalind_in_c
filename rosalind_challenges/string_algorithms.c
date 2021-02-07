@@ -339,7 +339,7 @@ LinkedList *get_spliced_indices(char *sequence, char *sub_sequence) {
 			if (sub_seq_char == seq_char) {
 				int *location = (int *) malloc(sizeof(int));
 				*location = seq_index + 1;
-				indices->append(indices, location, sizeof(char *));
+				indices->append(indices, location, sizeof(int));
 				seq_index++;
 				break;
 			}

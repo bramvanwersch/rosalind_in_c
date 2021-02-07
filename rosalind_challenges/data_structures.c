@@ -1059,6 +1059,13 @@ static void print_set_entry(SetEntry *e, int row_index) {
 
 // TESTING FUNCTIONS
 
+int test(char *argv[]) {
+	test_hash_table();
+	test_linked_list();
+	test_set();
+	return 0;
+}
+
 int test_linked_list() {
 	printf("Start LinkedList tests:\n");
 	int sizeof_str = sizeof(char) * 4;

@@ -143,6 +143,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="test_all_solutions.c">
+      <SubType>
+      </SubType>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="allignment_algorithms.h" />
@@ -150,6 +154,7 @@
     <ClInclude Include="data_structures.h" />
     <ClInclude Include="general_functions.h" />
     <ClInclude Include="string_algorithms.h" />
+    <ClInclude Include="test_all_solutions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

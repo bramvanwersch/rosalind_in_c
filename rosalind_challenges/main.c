@@ -3,22 +3,25 @@
 #include "string_algorithms.h"
 #include "allignment_algorithms.h"
 #include "combinatorics_algorithms.h"
+#include "test_all_solutions.h"
 
-
-int test(char *argv[]) {
-	test_hash_table();
-	test_linked_list();
-	test_set();
-	return 0;
-}
 
 int main(int argc, char *argv[]) {
 	// expected argv argument argv[1] = name of challenge, argv[2:] = other arguments
 	int result;
 
 	// make sure that the input file is provided
-	if (argc < 3) {
-		printf("Expected at least 3 argv arguments got %d\n", argc);
+	if (argc == 2) {
+		if (strcmp(argv[1], "test") == 0) {
+			main_test_solutions();
+		}
+		else {
+			fprintf(stderr, "Expected argument 'test'\n");
+		}
+		return 0;
+	}
+	else if (argc < 3) {
+		fprintf(stderr, "Expected at least 2 argv arguments got %d\n", argc);
 		return 1;
 	}
 
@@ -61,9 +64,6 @@ int main(int argc, char *argv[]) {
 	}
 	else if (strcmp(argv[1], "open_reading_frames") == 0) {
 		result = open_reading_frames(argv);
-	}
-	else if (strcmp(argv[1], "test") == 0) {
-		result = test(argv);
 	}
 	else {
 		printf("Unexpected solution name %s\n", argv[1]);
